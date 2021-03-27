@@ -12,8 +12,9 @@ import (
 	"time"
 )
 
-var Logger *zap.Logger
-var CompareFlag bool
+var RandomPath string
+var PathLength int
+var Countchan = make(chan struct{}, 200)
 
 type PoolPara struct {
 	ctx      context.Context
@@ -21,11 +22,8 @@ type PoolPara struct {
 	custom   *CustomClient
 	target   string
 	wgs      *sync.WaitGroup
-	wd *WildCard
+	wd       *WildCard
 }
-
-
-
 
 func ScanPrepare(ctx context.Context, client *CustomClient, target string) (*ReqRes, error) {
 
@@ -35,10 +33,10 @@ func ScanPrepare(ctx context.Context, client *CustomClient, target string) (*Req
 		return nil, fmt.Errorf("cann't connect to %s", target)
 	}
 
-	randpath := utils.RandStringBytesMaskImprSrcUnsafe(12)
+	RandomPath := utils.RandStringBytesMaskImprSrcUnsafe(12)
 
 	// TODO 暂时是不以/结尾所以在随机资源这里加了一个斜杠
-	wildcard, err := client.RunRequest(ctx, target+"/"+randpath)
+	wildcard, err := client.RunRequest(ctx, target+"/"+RandomPath)
 
 	if err != nil {
 		return nil, err
@@ -50,6 +48,7 @@ func ScanPrepare(ctx context.Context, client *CustomClient, target string) (*Req
 
 func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
+	t1 := time.Now()
 
 	//读取字典返回管道
 	WordChan := MakeWordChan(Opts.Dictionary, Opts.DirRoot)
@@ -62,12 +61,11 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		return err
 	}
 
-
 	// 完成对不存在页面的处理
 
 	wd, err := HandleWildCard(wildcard)
 
-
+	go BruteProcessBar(ctx, PathLength, Opts.Target, Countchan)
 
 	//  开启线程池
 	ScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
@@ -83,7 +81,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		custom:   client,
 		target:   Opts.Target,
 		wgs:      &wgs,
-		wd: wd,
+		wd:       wd,
 	}
 
 	go ResHandle(ResChan)
@@ -97,6 +95,8 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	wgs.Wait()
 
+	elapsed := time.Since(t1)
+	fmt.Println("App elapsed: ", elapsed)
 
 	// TODO 根据hits更新json
 	//for _, i := range ResSlice{
@@ -134,8 +134,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 //	return WordChan
 //}
 
-
-func MakeWordChan(DicSlice []string, DirRoot string) chan utils.PathDict{
+func MakeWordChan(DicSlice []string, DirRoot string) chan utils.PathDict {
 	WordChan := make(chan utils.PathDict)
 
 	alljson := utils.ReadDict(DicSlice, DirRoot)
@@ -144,8 +143,10 @@ func MakeWordChan(DicSlice []string, DirRoot string) chan utils.PathDict{
 		panic("please check your dict")
 	}
 
-	go func(){
-		for _, info := range alljson{
+	PathLength = len(alljson)
+
+	go func() {
+		for _, info := range alljson {
 			WordChan <- info
 		}
 		close(WordChan)
@@ -154,28 +155,28 @@ func MakeWordChan(DicSlice []string, DirRoot string) chan utils.PathDict{
 	return WordChan
 }
 
-func HandleWildCard(wildcard *ReqRes)(*WildCard, error) {
+func HandleWildCard(wildcard *ReqRes) (*WildCard, error) {
 
 	if wildcard.StatusCode == 200 {
 		wd := WildCard{
 			StatusCode: wildcard.StatusCode,
 			Body:       wildcard.Body,
 			Length:     int64(len(wildcard.Body)),
-			Type: 1,
+			Type:       1,
 		}
 		return &wd, nil
 
-	}else if wildcard.StatusCode > 300 && wildcard.StatusCode < 400 {
+	} else if wildcard.StatusCode > 300 && wildcard.StatusCode < 404 {
 		wd := WildCard{
 			StatusCode: wildcard.StatusCode,
-			Location: wildcard.Header.Get("Location"),
-			Type: 2,
+			Location:   wildcard.Header.Get("Location"),
+			Type:       2,
 		}
 		return &wd, nil
-	}else {
+	} else {
 		wd := WildCard{
 			StatusCode: wildcard.StatusCode,
-			Type: 3,
+			Type:       3,
 		}
 		return &wd, nil
 	}
@@ -196,6 +197,8 @@ func AccessWork(WorkPara *PoolPara) {
 				return
 			}
 
+			Countchan <- struct{}{}
+
 			path := word.Path
 
 			PreHandleWord := strings.TrimSpace(path)
@@ -210,99 +213,94 @@ func AccessWork(WorkPara *PoolPara) {
 				continue
 			}
 
-
 			// 和资源不存在页面进行比较
 			comres, err := CompareWildCard(WorkPara.wd, result)
 
 			if comres {
-				fmt.Println(WorkPara.target+PreHandleWord)
+				ProBar.Clear()
+				fmt.Printf("Path:%s \t Code:%d\n", WorkPara.target+PreHandleWord, result.StatusCode)
 				word.Hits += 1
 				Logger.Info("Success",
-					zap.String("Path", WorkPara.target+PreHandleWord))
+					zap.String("Path", WorkPara.target+PreHandleWord),
+					zap.Int("Code", result.StatusCode))
 				ResChan <- word
 			}
-
 
 		}
 	}
 
 }
 
-func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error){
+func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 	switch wd.Type {
 
 	// 类型1即资源不存在页面状态码为200
 	case 1:
-		if result.StatusCode == 200{
+		if result.StatusCode == 200 {
 			comres, err := Compare200(&wd.Body, &result.Body)
-			return comres,err
-		}else if result.StatusCode > 300 && result.StatusCode < 400 {
+			return comres, err
+		} else if (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503 {
 			return true, nil
 		}
 	// 类型2即资源不存在页面状态码为30x
 	case 2:
 		if result.StatusCode == 200 {
 			return true, nil
-		}else if result.StatusCode == wd.StatusCode{
+		} else if result.StatusCode == wd.StatusCode {
 			comres, err := Compare30x(wd.Location, result.Header.Get("Location"))
-			return comres,err
-		}else if result.StatusCode > 300 && result.StatusCode < 400 {
+			return comres, err
+		} else if (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503 {
 			return true, nil
 		}
 		// 类型3 即资源不存在页面状态码404或者奇奇怪怪
 	case 3:
 		// TODO 存在nginx的类似301跳转后的404页面
-		if wd.StatusCode != result.StatusCode{
-			if result.StatusCode == 200 || (result.StatusCode > 300 && result.StatusCode < 400){
+		if wd.StatusCode != result.StatusCode {
+			if result.StatusCode == 200 || (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503 {
 				return true, nil
 			}
 		}
 
 	}
 
-	return false,nil
+	return false, nil
 
 }
 
-func Compare30x(WdLoc string, Res string)(bool, error){
+func Compare30x(WdLoc string, Res string) (bool, error) {
 	// 改为url对比 会出现由于参数问题导致的location对比不合理
 	ratio := 0.98
 
 	HandleWd, err := utils.HandleLocation(WdLoc)
 
-	if err != nil{
+	if err != nil {
 		HandleWd = WdLoc
 	}
 
-
 	HandleRes, err := utils.HandleLocation(Res)
 
-	if err != nil{
+	if err != nil {
 		HandleRes = Res
 	}
 
 	ComRatio := strsim.Compare(HandleWd, HandleRes)
 
-	if ratio > ComRatio{
+	if ratio > ComRatio {
 		return true, nil
 	}
 
-	return false,nil
+	return false, nil
 
 }
 
-func Compare200(WdBody *[]byte, ResBody *[]byte)(bool, error){
+func Compare200(WdBody *[]byte, ResBody *[]byte) (bool, error) {
 	ratio := 0.98
 
 	ComRatio := strsim.Compare(string(*WdBody), string(*ResBody))
 
-	if ratio > ComRatio{
+	if ratio > ComRatio {
 		return true, nil
 	}
 
-	return false,nil
+	return false, nil
 }
-
-
-
-

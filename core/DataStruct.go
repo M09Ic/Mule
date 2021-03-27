@@ -9,26 +9,28 @@ type Options struct {
 	Timeout    int
 	Headers    []HTTPHeader
 	Dictionary []string
-	DirRoot string
+	DirRoot    string
 	Target     string
-	Cookie string
+	Cookie     string
 	Method     string
 }
 
 type ReqRes struct {
 	StatusCode int
-	Header http.Header
-	Body []byte
-	Length int64
+	Header     http.Header
+	Body       []byte
+	Length     int64
 }
 
 type WildCard struct {
 	StatusCode int
-	Location string
-	Body []byte
-	Length int64
-	Type int
+	Location   string
+	Body       []byte
+	Length     int64
+	Type       int
 }
 
-
-
+type WafCk struct {
+	WafName string
+	Alive   bool
+}

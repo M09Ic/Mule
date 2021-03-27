@@ -26,17 +26,17 @@ const (
 	letterIdxBits = 6                    // 6 bits to represent a letter index
 	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
-	letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
 type PathDict struct {
 	PathInfo
-	Tag  string
+	Tag string
 }
 
 type PathInfo struct {
 	Path string `json:"path"`
-	Hits int `json:"hits"`
+	Hits int    `json:"hits"`
 }
 
 func RandStringBytesMaskImprSrcUnsafe(n int) string {
@@ -57,7 +57,7 @@ func RandStringBytesMaskImprSrcUnsafe(n int) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-func HandleTarget(target string)(string,error){
+func HandleTarget(target string) (string, error) {
 	if !strings.HasPrefix(target, "http") {
 		// check to see if a port was specified
 		re := regexp.MustCompile(`^[^/]+:(\d+)`)
@@ -81,24 +81,23 @@ func HandleTarget(target string)(string,error){
 	//	target = target + "/"
 	//}
 
-	if strings.HasSuffix(target,"/"){
+	if strings.HasSuffix(target, "/") {
 		target = target[:len(target)-1]
 	}
 
 	return target, nil
 }
 
-func HandleLocation(location string)(string, error){
+func HandleLocation(location string) (string, error) {
 	u, err := url.Parse(location)
-	if err != nil{
-		return location,err
+	if err != nil {
+		return location, err
 	}
-
 
 	path := u.Path
 
 	// path存在特殊情况的处理,在某些java的场景下会出现path中带有;jsessionid的情况,会让url比较出现问题
-	if strings.Contains(u.Path ,";jsessionid"){
+	if strings.Contains(u.Path, ";jsessionid") {
 		index := strings.Index(u.Path, ";jsessionid")
 		path = u.Path[:index]
 	}
@@ -108,12 +107,10 @@ func HandleLocation(location string)(string, error){
 	return handled, nil
 }
 
-
-func ReadDict(info []string,root string) []PathDict {
+func ReadDict(info []string, root string) []PathDict {
 	/*
 		用来读取目录字典的数据，转换成列表的形式
 	*/
-
 
 	var allJson []PathDict
 
@@ -122,10 +119,9 @@ func ReadDict(info []string,root string) []PathDict {
 
 		tagname, pathext := GetNameSuffix(dictpath)
 
-		if pathext == ""{
-			dictpath = filepath.Join(root,"Data",dictpath + ".json")
+		if pathext == "" {
+			dictpath = filepath.Join(root, "Data", "DefDict", dictpath+".json")
 		}
-
 
 		bytes, err := ioutil.ReadFile(dictpath)
 		if err != nil {
@@ -139,11 +135,10 @@ func ReadDict(info []string,root string) []PathDict {
 			continue
 		}
 
-
 		for _, y := range eachJson {
 			mid := PathDict{
 				PathInfo: y,
-				Tag:  tagname,
+				Tag:      tagname,
 			}
 			allJson = append(allJson, mid)
 		}
@@ -172,14 +167,14 @@ func PathExists(path string) (bool, error) {
 	return false, err
 }
 
-func GetNameSuffix(filename string)(string,string){
+func GetNameSuffix(filename string) (string, string) {
 	filenameWithSuffix := path.Base(filename)
 
 	fileSuffix := path.Ext(filenameWithSuffix)
 
 	filenameOnly := strings.TrimSuffix(filenameWithSuffix, fileSuffix)
 
-	return filenameOnly,fileSuffix
+	return filenameOnly, fileSuffix
 }
 
 func CustomMarshal(message interface{}) (string, error) {
@@ -199,7 +194,6 @@ func CustomMarshal(message interface{}) (string, error) {
 
 	return bf.String(), nil
 }
-
 
 func GetDefaultList(def string) (DefList []string) {
 	if def != "" {

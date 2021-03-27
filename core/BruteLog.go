@@ -2,7 +2,9 @@ package core
 
 import (
 	"Mule/utils"
+	"context"
 	"encoding/json"
+	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io/ioutil"
@@ -10,10 +12,12 @@ import (
 	"path/filepath"
 )
 
-
 var ResChan = make(chan utils.PathDict, 10)
 
 var ResSlice []utils.PathDict
+
+var Logger *zap.Logger
+var ProBar *progressbar.ProgressBar
 
 //初始化log
 
@@ -27,13 +31,12 @@ func InitLogger(logfile string) {
 	encoder := zapcore.NewJSONEncoder(encoderConfig)
 
 	//core := zapcore.NewCore(encoder,zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout)), zapcore.DebugLevel)
-	core := zapcore.NewCore(encoder,zapcore.NewMultiWriteSyncer(writeSyncer), zapcore.DebugLevel)
+	core := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(writeSyncer), zapcore.DebugLevel)
 	Logger = zap.New(core)
 }
 
-
-func ResHandle(reschan chan utils.PathDict) []utils.PathDict{
-	for res := range reschan{
+func ResHandle(reschan chan utils.PathDict) []utils.PathDict {
+	for res := range reschan {
 		ResSlice = append(ResSlice, res)
 	}
 
@@ -41,7 +44,7 @@ func ResHandle(reschan chan utils.PathDict) []utils.PathDict{
 
 }
 
-func UpdateDict(dicpath []string,dirroot string){
+func UpdateDict(dicpath []string, dirroot string) {
 
 	DictMap := make(map[string][]string)
 
@@ -49,16 +52,14 @@ func UpdateDict(dicpath []string,dirroot string){
 		DictMap[res.Tag] = append(DictMap[res.Tag], res.Path)
 	}
 
-	for _ ,dic := range dicpath {
+	for _, dic := range dicpath {
 		var OldDict, NewDict []utils.PathDict
 		filename, ext := utils.GetNameSuffix(dic)
 
+		NewDicPath := filepath.Join(dirroot, "Data", "DefDict", filename+"_new"+".json")
 
-
-		NewDicPath := filepath.Join(dirroot, "Data", filename+"_new"+".json")
-
-		if ext == ""{
-			dic = filepath.Join(dirroot, "Data", filename +".json")
+		if ext == "" {
+			dic = filepath.Join(dirroot, "Data", "DefDict", filename+".json")
 
 		}
 
@@ -109,4 +110,37 @@ func StringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan chan struct{}) {
+	// create and start new bar
+
+	ProBar = progressbar.NewOptions(PathCap,
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetDescription("[cyan][1/3][reset] Writing moshable file..."),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=",
+			SaucerPadding: " ",
+			BarStart:      "|",
+			BarEnd:        "|",
+			SaucerHead:    "[blue]>",
+		}))
+
+	for {
+		select {
+		case <-ctx.Done():
+			ProBar.Finish()
+			return
+		case _, ok := <-CountChan:
+			if !ok {
+				ProBar.Finish()
+				return
+			}
+
+			ProBar.Add(1)
+
+		}
+	}
+
 }
