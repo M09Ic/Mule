@@ -24,17 +24,12 @@ import (
 	"strings"
 )
 
-
-
-
-
-
 // BruteCmd represents the Brute command
 var BruteCmd = &cobra.Command{
 	Use:   "Brute",
 	Short: "a weak Directory Blasting",
-	Long: `I'm too lazy to write more introduction`,
-	RunE: StartBrute,
+	Long:  `I'm too lazy to write more introduction`,
+	RunE:  StartBrute,
 }
 
 func init() {
@@ -49,46 +44,38 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// BruteCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	BruteCmd.Flags().StringP("url","u","","brute target(currently only single url)")
-	BruteCmd.Flags().StringP("dic","d","","dictionary to brute")
-	BruteCmd.Flags().StringP("flag","f","","use default dictionary in /Data")
-	BruteCmd.Flags().StringP("output","o","./res.log","output res default in ./res.log")
-	BruteCmd.Flags().StringArrayP("Headers","H",[]string{},"Request's Headers")
-	BruteCmd.Flags().StringP("Cookie","C","","Request's Cookie")
-	BruteCmd.Flags().IntP("timeout","",2,"request's timeout")
-	BruteCmd.Flags().IntP("Thread","t",30,"the size of thread pool")
-
-	if err := BruteCmd.MarkFlagRequired("url") ; err != nil {
-		errmsg := fmt.Errorf("error on marking flag as required: %w", err)
-		panic(errmsg)
-	}
-
+	BruteCmd.Flags().StringP("url", "u", "", "brute target(currently only single url)")
+	BruteCmd.Flags().StringP("urls", "U", "", "targets from file")
+	BruteCmd.Flags().StringP("dic", "d", "", "dictionary to brute")
+	BruteCmd.Flags().StringP("flag", "f", "", "use default dictionary in /Data")
+	BruteCmd.Flags().StringP("output", "o", "./res.log", "output res default in ./res.log")
+	BruteCmd.Flags().StringArrayP("Headers", "H", []string{}, "Request's Headers")
+	BruteCmd.Flags().StringP("Cookie", "C", "", "Request's Cookie")
+	BruteCmd.Flags().IntP("timeout", "", 2, "request's timeout")
+	BruteCmd.Flags().IntP("Thread", "t", 30, "the size of thread pool")
 
 }
 
-func StartBrute(cmd *cobra.Command, args []string)error{
+func StartBrute(cmd *cobra.Command, args []string) error {
 
 	//start := time.Now() // 获取当前时间
 
 	opts, err := ParseInput(cmd)
 
-
-
-	if err != nil{
+	if err != nil {
 		panic(err)
 		return nil
 	}
 
 	CustomClient := &core.CustomClient{}
 
-	CustomClient,err = CustomClient.NewHttpClient(opts)
+	CustomClient, err = CustomClient.NewHttpClient(opts)
 
 	CustomClient.Headers = opts.Headers
 
+	err = core.ScanTask(maincontext, *opts, CustomClient)
 
-	err = core.ScanTask(mainContext, *opts, CustomClient)
-
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -98,57 +85,77 @@ func StartBrute(cmd *cobra.Command, args []string)error{
 	return nil
 }
 
-func ParseInput(cmd *cobra.Command)(*core.Options, error){
+func ParseInput(cmd *cobra.Command) (*core.Options, error) {
 	opts := core.Options{}
 
 	var err error
+	var FTargets []string
 
 	DefaultDic, err := os.Getwd()
-	if err != nil{
+	if err != nil {
 		panic(err)
 	}
 
 	opts.DirRoot = DefaultDic
 
-
 	// 预处理url
-	opts.Target, err = cmd.Flags().GetString("url")
+	STarget, err := cmd.Flags().GetString("url")
 
-	if err != nil{
-		return nil,fmt.Errorf("invalid value for url: %w", err)
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for url: %w", err)
 	}
 
-	opts.Target, err = utils.HandleTarget(opts.Target)
+	FTarget, err := cmd.Flags().GetString("urls")
 
-	if err != nil{
-		return nil, err
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for urls: %w", err)
 	}
 
+	if FTarget == "" && STarget == "" {
+		return nil, fmt.Errorf("Please input the target")
+	} else if FTarget != "" && STarget == "" {
+		FTargets, err = utils.ReadTarget(FTarget)
+
+		if err != nil {
+			return nil, fmt.Errorf("please check target file")
+		}
+	} else if FTarget == "" && STarget != "" {
+		FTargets = append(FTargets, STarget)
+	} else {
+		return nil, fmt.Errorf("only input u or U,cannot use in the same time")
+	}
+
+	for _, t := range FTargets {
+		temp, err := utils.HandleTarget(t)
+		if err != nil {
+			return nil, err
+		}
+
+		opts.Target = append(opts.Target, temp)
+	}
 
 	// 字典存活验证(现在放到后面读取处进行验证)
 	dicstring, err := cmd.Flags().GetString("dic")
-	if err != nil{
-		return nil,fmt.Errorf("invalid value for dictionary: %w", err)
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for dictionary: %w", err)
 	}
 
 	opts.Dictionary = append(opts.Dictionary, dicstring)
 
 	defaultstring, err := cmd.Flags().GetString("flag")
-	if err != nil{
-		return nil,fmt.Errorf("invalid value for dictionary: %w", err)
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for dictionary: %w", err)
 	}
 
 	defslice := utils.GetDefaultList(defaultstring)
 
 	opts.Dictionary = append(opts.Dictionary, defslice...)
 
-
 	//alive, err := core.PathExists(opts.Dictionary)
 	//
 	//if !alive{
 	//	panic("please check your dict")
 	//}
-
 
 	// 处理输入的header
 	headers, err := cmd.Flags().GetStringArray("Headers")
@@ -172,27 +179,25 @@ func ParseInput(cmd *cobra.Command)(*core.Options, error){
 
 	opts.Cookie, err = cmd.Flags().GetString("Cookie")
 
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("invalid value for cookie: %w", err)
 	}
 
-
-
 	opts.Thread, err = cmd.Flags().GetInt("Thread")
 
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("invalid value for Thread: %w", err)
 	}
 
 	opts.Timeout, err = cmd.Flags().GetInt("timeout")
 
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("invalid value for timeout: %w", err)
 	}
 
 	LogFile, err := cmd.Flags().GetString("output")
 
-	if err != nil{
+	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
 	}
 

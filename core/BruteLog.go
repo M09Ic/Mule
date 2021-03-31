@@ -18,6 +18,7 @@ var ResSlice []utils.PathDict
 
 var Logger *zap.Logger
 var ProBar *progressbar.ProgressBar
+var CheckFlag int
 
 //初始化log
 
@@ -118,7 +119,7 @@ func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan 
 	ProBar = progressbar.NewOptions(PathCap,
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionShowBytes(true),
-		progressbar.OptionSetDescription("[cyan][1/3][reset] Writing moshable file..."),
+		progressbar.OptionSetDescription("[cyan] Now Processing [reset]"+Target),
 		progressbar.OptionSetTheme(progressbar.Theme{
 			Saucer:        "[green]=",
 			SaucerPadding: " ",

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -207,4 +208,24 @@ func GetDefaultList(def string) (DefList []string) {
 		}
 	}
 	return DefList
+}
+
+func ReadTarget(targetfile string) (TargetList []string, err error) {
+	file, err := os.Open(targetfile)
+	if err != nil {
+		panic("please check your file")
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		user := strings.TrimSpace(scanner.Text())
+		if user != "" {
+			TargetList = append(TargetList, user)
+		}
+	}
+	return TargetList, err
 }

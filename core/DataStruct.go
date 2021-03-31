@@ -10,7 +10,7 @@ type Options struct {
 	Headers    []HTTPHeader
 	Dictionary []string
 	DirRoot    string
-	Target     string
+	Target     []string
 	Cookie     string
 	Method     string
 }

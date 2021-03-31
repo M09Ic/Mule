@@ -15,8 +15,8 @@ import (
 
 type CustomClient struct {
 	CuClient *http.Client
-	Method string
-	Headers []HTTPHeader
+	Method   string
+	Headers  []HTTPHeader
 }
 
 type HTTPHeader struct {
@@ -24,15 +24,14 @@ type HTTPHeader struct {
 	Value string
 }
 
-
-func (custom *CustomClient) NewHttpClient(Opt *Options)(*CustomClient, error){
+func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 	custom.CuClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
 		},
-		Timeout:  time.Second * time.Duration(Opt.Timeout),
+		Timeout: time.Second * time.Duration(Opt.Timeout),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -41,10 +40,10 @@ func (custom *CustomClient) NewHttpClient(Opt *Options)(*CustomClient, error){
 	custom.Method = Opt.Method
 	custom.Headers = Opt.Headers
 
-	return custom,nil
+	return custom, nil
 }
 
-func (custom *CustomClient) RunRequest(ctx context.Context,Url string)(*ReqRes, error){
+func (custom *CustomClient) RunRequest(ctx context.Context, Url string) (*ReqRes, error) {
 
 	response, err := custom.DoRequest(ctx, Url)
 
@@ -55,18 +54,14 @@ func (custom *CustomClient) RunRequest(ctx context.Context,Url string)(*ReqRes, 
 		if errors.Is(ctx.Err(), context.Canceled) {
 			return nil, err
 		}
-		Logger.Error("RunRequestErr", zap.String("Error",err.Error()))
+		Logger.Error("RunRequestErr", zap.String("Error", err.Error()))
 		return nil, err
 	}
-
-
 
 	body, err := io.ReadAll(response.Body)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-
-
 
 	result.StatusCode = response.StatusCode
 	result.Header = response.Header
@@ -77,19 +72,19 @@ func (custom *CustomClient) RunRequest(ctx context.Context,Url string)(*ReqRes, 
 
 }
 
-func (custom *CustomClient) DoRequest(ctx context.Context,Url string)(response *http.Response, err error){
+func (custom *CustomClient) DoRequest(ctx context.Context, Url string) (response *http.Response, err error) {
 
 	//request, err := http.NewRequest(custom.Method, Url, nil)
 
-	request, err := http.NewRequest("GET",Url, nil)
+	request, err := http.NewRequest("GET", Url, nil)
 
-	request = request.WithContext(ctx)
-
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
-	for _, header := range custom.Headers{
+	request = request.WithContext(ctx)
+
+	for _, header := range custom.Headers {
 		request.Header.Set(header.Name, header.Value)
 	}
 

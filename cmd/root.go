@@ -18,8 +18,8 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 	"github.com/spf13/cobra"
+	"os"
 	"os/signal"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -27,13 +27,13 @@ import (
 )
 
 var cfgFile string
-var mainContext context.Context
+var maincontext context.Context
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "Mule",
 	Short: "A silly tool",
-	Long: `A silly tool`,
+	Long:  `A silly tool`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//Run: func(cmd *cobra.Command, args []string) {
@@ -44,10 +44,11 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	var cancel context.CancelFunc
-	mainContext, cancel = context.WithCancel(context.Background())
-	defer cancel()
 
+	//childContext, childcancel := context.WithCancel(mainContext)
+	var cancel context.CancelFunc
+	maincontext, cancel = context.WithCancel(context.Background())
+	defer cancel()
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	defer func() {
@@ -59,8 +60,11 @@ func Execute() {
 		case <-signalChan:
 			// caught CTRL+C
 			fmt.Println("\n[!] Keyboard interrupt detected, terminating.")
+			//core.CurCancel()
+			//childcancel()
 			cancel()
-		case <-mainContext.Done():
+		//case <-childContext.Done():
+		case <-maincontext.Done():
 		}
 	}()
 	cobra.CheckErr(rootCmd.Execute())
