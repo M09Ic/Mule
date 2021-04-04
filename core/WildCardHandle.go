@@ -3,7 +3,10 @@ package core
 import (
 	"Mule/utils"
 	"context"
+	"fmt"
 	"github.com/antlabs/strsim"
+	"path/filepath"
+	"strings"
 )
 
 var RandomPath string
@@ -110,6 +113,67 @@ func HandleWildCard(wildcard *ReqRes) (*WildCard, error) {
 
 }
 
-func GenWildCard(ctx context.Context, client *CustomClient, target string) {
+func GenWildCardMap(ctx context.Context, client *CustomClient, random string, target string, proroot string) (map[string]*WildCard, error) {
+	var Testpath string
+	var err error
+	var wd *WildCard
+	resmap := make(map[string]*WildCard)
 
+	wdlist, err := GetExPathList(proroot)
+
+	wdlist = append(wdlist, "")
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ex := range wdlist {
+		if ex == "" {
+			Testpath = RandomPath
+			wd, err = GenWd(ctx, client, target, Testpath)
+			if err != nil {
+				return nil, err
+			}
+			resmap["default"] = wd
+
+		} else if !strings.Contains(ex, "$$") {
+			fmt.Printf("%s don't have symbol $$, please check\n", ex)
+			continue
+		} else {
+			Testpath = strings.Replace(ex, "$$", random, 1)
+			wd, err = GenWd(ctx, client, target, Testpath)
+			if err != nil {
+				return nil, fmt.Errorf("When you test %s, there is something error\n", ex)
+			}
+			resmap[strings.Replace(ex, "$$", "", 1)] = wd
+		}
+	}
+
+	return resmap, nil
+
+}
+
+func GetExPathList(root string) ([]string, error) {
+	// TODO 将加入参数dirroot,这里为了测试方便使用了绝对路径
+	expath := filepath.Join("/Users/puaking/Desktop/Go_program/Mule", "Data", "SpecialList", "exwildcard.txt")
+
+	ex, err := utils.ReadLines(expath)
+	if err != nil {
+		println(err.Error())
+		return nil, err
+	}
+
+	return ex, nil
+}
+
+func GenWd(ctx context.Context, client *CustomClient, target string, Tpath string) (*WildCard, error) {
+	wildcard, err := client.RunRequest(ctx, target+"/"+RandomPath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	wd, err := HandleWildCard(wildcard)
+
+	return wd, nil
 }

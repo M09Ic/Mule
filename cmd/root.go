@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"Mule/core"
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -60,10 +61,8 @@ func Execute() {
 		case <-signalChan:
 			// caught CTRL+C
 			fmt.Println("\n[!] Keyboard interrupt detected, terminating.")
-			//core.CurCancel()
-			//childcancel()
-			cancel()
-		//case <-childContext.Done():
+			core.CurCancel()
+
 		case <-maincontext.Done():
 		}
 	}()

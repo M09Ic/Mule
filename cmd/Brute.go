@@ -140,7 +140,9 @@ func ParseInput(cmd *cobra.Command) (*core.Options, error) {
 		return nil, fmt.Errorf("invalid value for dictionary: %w", err)
 	}
 
-	opts.Dictionary = append(opts.Dictionary, dicstring)
+	if dicstring != "" {
+		opts.Dictionary = append(opts.Dictionary, dicstring)
+	}
 
 	defaultstring, err := cmd.Flags().GetString("flag")
 	if err != nil {

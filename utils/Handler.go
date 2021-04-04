@@ -114,6 +114,7 @@ func ReadDict(info []string, root string) []PathDict {
 	*/
 
 	var allJson []PathDict
+	var err error
 
 	for _, dictpath := range info {
 		var eachJson []PathInfo
@@ -122,8 +123,14 @@ func ReadDict(info []string, root string) []PathDict {
 
 		if pathext == "" {
 			dictpath = filepath.Join(root, "Data", "DefDict", dictpath+".json")
-		}
+		} else if pathext == ".txt" {
+			dictpath, err = TextToJsonOfFile(dictpath, tagname, root)
+			if err != nil {
+				fmt.Printf("can't convert %s to json\n", dictpath)
+				continue
+			}
 
+		}
 		bytes, err := ioutil.ReadFile(dictpath)
 		if err != nil {
 			println(dictpath + " open failed")

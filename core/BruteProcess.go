@@ -14,7 +14,8 @@ import (
 var PathLength int
 var Countchan = make(chan struct{}, 200)
 
-//var CurCancel context.CancelFunc
+var CurCancel context.CancelFunc
+var CurContext context.Context
 var CheckChan = make(chan int, 100)
 
 type PoolPara struct {
@@ -47,6 +48,30 @@ func ScanPrepare(ctx context.Context, client *CustomClient, target string) (*Req
 
 }
 
+func ScanPrepare2(ctx context.Context, client *CustomClient, target string, root string) (map[string]*WildCard, error) {
+
+	var WdMap map[string]*WildCard
+
+	_, err := client.RunRequest(ctx, target)
+
+	if err != nil {
+		return nil, fmt.Errorf("cann't connect to %s", target)
+	}
+
+	RandomPath = utils.RandStringBytesMaskImprSrcUnsafe(12)
+
+	//wildcard, err := client.RunRequest(ctx, target+"/"+RandomPath)
+
+	WdMap, err = GenWildCardMap(ctx, client, RandomPath, target, root)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return WdMap, nil
+
+}
+
 func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	taskroot, cancel := context.WithCancel(context.Background())
@@ -56,26 +81,26 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		CheckFlag = 0
 
 		//t1 := time.Now()
-		curctx, curcancel := context.WithCancel(taskroot)
-
-		//读取字典返回管道
-		WordChan := MakeWordChan(Opts.Dictionary, Opts.DirRoot)
+		CurContext, CurCancel = context.WithCancel(taskroot)
 
 		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
 
 		wildcard, err := ScanPrepare(ctx, client, curtarget)
 
-		if err != nil {
-			continue
-		}
-
 		// 完成对不存在页面的处理
 
 		wd, err := HandleWildCard(wildcard)
 
-		go TimingCheck(curctx, client, curtarget, wd, CheckChan, curcancel)
+		//读取字典返回管道
+		WordChan := MakeWordChan(Opts.Dictionary, Opts.DirRoot)
 
-		go BruteProcessBar(curctx, PathLength, curtarget, Countchan)
+		if err != nil {
+			continue
+		}
+
+		go TimingCheck(CurContext, client, curtarget, wd, CheckChan, CurCancel)
+
+		go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
 
 		//  开启线程池
 		ScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
@@ -86,7 +111,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		var wgs sync.WaitGroup
 
 		PrePara := PoolPara{
-			ctx:      curctx,
+			ctx:      CurContext,
 			wordchan: WordChan,
 			custom:   client,
 			target:   curtarget,
@@ -113,7 +138,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		time.Sleep(500 * time.Millisecond)
 
 		UpdateDict(Opts.Dictionary, Opts.DirRoot)
-		curcancel()
+		CurCancel()
 	}
 
 	return nil
