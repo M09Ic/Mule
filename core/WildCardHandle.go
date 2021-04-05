@@ -85,6 +85,24 @@ func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 
 }
 
+func CustomCompare(wdmap map[string]*WildCard, path string, result *ReqRes) (bool, error) {
+	for key := range wdmap {
+		if key == "default" {
+			continue
+		} else {
+			if strings.Contains(path, key) {
+				res, err := CompareWildCard(wdmap[key], result)
+				return res, err
+			}
+		}
+	}
+
+	key := "default"
+	res, err := CompareWildCard(wdmap[key], result)
+	return res, err
+
+}
+
 func HandleWildCard(wildcard *ReqRes) (*WildCard, error) {
 
 	if wildcard.StatusCode == 200 {
@@ -129,7 +147,7 @@ func GenWildCardMap(ctx context.Context, client *CustomClient, random string, ta
 
 	for _, ex := range wdlist {
 		if ex == "" {
-			Testpath = RandomPath
+			Testpath = "/" + RandomPath
 			wd, err = GenWd(ctx, client, target, Testpath)
 			if err != nil {
 				return nil, err
@@ -145,7 +163,9 @@ func GenWildCardMap(ctx context.Context, client *CustomClient, random string, ta
 			if err != nil {
 				return nil, fmt.Errorf("When you test %s, there is something error\n", ex)
 			}
-			resmap[strings.Replace(ex, "$$", "", 1)] = wd
+			in := strings.Index(ex, "$$")
+			key := ex[in+2:]
+			resmap[key] = wd
 		}
 	}
 
@@ -167,7 +187,7 @@ func GetExPathList(root string) ([]string, error) {
 }
 
 func GenWd(ctx context.Context, client *CustomClient, target string, Tpath string) (*WildCard, error) {
-	wildcard, err := client.RunRequest(ctx, target+"/"+RandomPath)
+	wildcard, err := client.RunRequest(ctx, target+Tpath)
 
 	if err != nil {
 		return nil, err

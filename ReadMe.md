@@ -28,16 +28,16 @@ Flags:
     -f, --flag string           use default dictionary in /Data
     -h, --help                  help for Brute
     -o, --output string         output res default in ./res.log (default "./res.log")
-    --timeout int           request's timeout (default 2)
-    -u, --url string            brute target(currently only single url)
+    --timeout int               request's timeout (default 2)
+    -u, --url string            brute target
+    -U, --urls string           targets from file
 
 * 默认线程是30,实际测试出来100也完全没事,怕路由器不行,就还是30吧
 * 默认日志是放在当前目录下的res.log中,同时会在console中输出
-* 暂时还未支持批量爆破,现在是单个url进行爆破
+* 这里有一部分默认字典
+
+
 
 
 ## TODO
-
-1. 加上进度条
-2. 加上waf识别
-
+1. waf 识别? 思考了一下有waf也就不爆破了不如爆破几下

@@ -60,7 +60,7 @@ func Execute() {
 		select {
 		case <-signalChan:
 			// caught CTRL+C
-			fmt.Println("\n[!] Keyboard interrupt detected, terminating.")
+			fmt.Println("\n[!] Keyboard interrupt detected, skip current target.")
 			core.CurCancel()
 
 		case <-maincontext.Done():

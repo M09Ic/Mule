@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var CancelFlag int
+
 // 定期检测是否触发了安全设备被block了
 func TriggerWaf(ctx context.Context, client *CustomClient, target string, wd *WildCard) (bool, error) {
 
@@ -44,7 +46,7 @@ func TriggerWaf(ctx context.Context, client *CustomClient, target string, wd *Wi
 
 func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *WildCard, ck chan int, ctxcancel context.CancelFunc) {
 	CheckFlag = 0
-
+	CancelFlag = 0
 	for {
 		select {
 		case <-ctx.Done():
@@ -57,11 +59,17 @@ func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *W
 			if CheckFlag%100 == 0 && CheckFlag != 0 {
 				res, err := TriggerWaf(ctx, client, target, wd)
 				if err != nil {
-					fmt.Printf("bad luck, you have been blocked %s, there is a waf or check your network\n", target)
-					ctxcancel()
+					//fmt.Printf("bad luck, you have been blocked %s, there is a waf or check your network\n", target)
+					//ctxcancel()
+					CancelFlag += 1
+				} else if res {
+					//fmt.Printf("bad luck, you have been blocked %s, there is a waf or check your network\n", target)
+					//ctxcancel()
+					CancelFlag += 1
 				}
-				if res {
-					fmt.Printf("bad luck, you have been blocked %s, there is a waf or check your network\n", target)
+
+				if CancelFlag > 4 {
+					fmt.Printf("\nbad luck, you have been blocked %s, there is a waf or check your network\n", target)
 					ctxcancel()
 				}
 			}

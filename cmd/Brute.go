@@ -51,7 +51,7 @@ func init() {
 	BruteCmd.Flags().StringP("output", "o", "./res.log", "output res default in ./res.log")
 	BruteCmd.Flags().StringArrayP("Headers", "H", []string{}, "Request's Headers")
 	BruteCmd.Flags().StringP("Cookie", "C", "", "Request's Cookie")
-	BruteCmd.Flags().IntP("timeout", "", 2, "request's timeout")
+	BruteCmd.Flags().IntP("timeout", "", 5, "request's timeout")
 	BruteCmd.Flags().IntP("Thread", "t", 30, "the size of thread pool")
 
 }

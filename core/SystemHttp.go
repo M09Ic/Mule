@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"go.uber.org/zap"
 	"io"
 	"net/http"
 	"net/url"
@@ -30,6 +29,7 @@ func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
+			//DisableKeepAlives: true,
 		},
 		Timeout: time.Second * time.Duration(Opt.Timeout),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -54,7 +54,8 @@ func (custom *CustomClient) RunRequest(ctx context.Context, Url string) (*ReqRes
 		if errors.Is(ctx.Err(), context.Canceled) {
 			return nil, err
 		}
-		Logger.Error("RunRequestErr", zap.String("Error", err.Error()))
+		// 输出错误,暂时看下来context deadline的页面都是无意义的页面,如果以后出现再解决
+		//Logger.Error("RunRequestErr", zap.String("Error", err.Error()))
 		return nil, err
 	}
 
@@ -62,7 +63,7 @@ func (custom *CustomClient) RunRequest(ctx context.Context, Url string) (*ReqRes
 	if err != nil {
 		return nil, err
 	}
-
+	response.Body.Close()
 	result.StatusCode = response.StatusCode
 	result.Header = response.Header
 	result.Length = int64(len(body))

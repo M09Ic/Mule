@@ -12,11 +12,11 @@ import (
 )
 
 var PathLength int
-var Countchan = make(chan struct{}, 200)
+var Countchan = make(chan struct{}, 10000)
 
 var CurCancel context.CancelFunc
 var CurContext context.Context
-var CheckChan = make(chan int, 100)
+var CheckChan = make(chan int, 10000)
 
 type PoolPara struct {
 	ctx      context.Context
@@ -24,7 +24,7 @@ type PoolPara struct {
 	custom   *CustomClient
 	target   string
 	wgs      *sync.WaitGroup
-	wd       *WildCard
+	wdmap    map[string]*WildCard
 }
 
 func ScanPrepare(ctx context.Context, client *CustomClient, target string) (*ReqRes, error) {
@@ -85,20 +85,20 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
 
-		wildcard, err := ScanPrepare(ctx, client, curtarget)
-
-		// 完成对不存在页面的处理
-
-		wd, err := HandleWildCard(wildcard)
-
-		//读取字典返回管道
-		WordChan := MakeWordChan(Opts.Dictionary, Opts.DirRoot)
+		wildcardmap, err := ScanPrepare2(ctx, client, curtarget, Opts.DirRoot)
 
 		if err != nil {
 			continue
 		}
 
-		go TimingCheck(CurContext, client, curtarget, wd, CheckChan, CurCancel)
+		//// 完成对不存在页面的处理
+		//
+		//wd, err := HandleWildCard(wildcard)
+
+		//读取字典返回管道
+		WordChan := MakeWordChan(Opts.Dictionary, Opts.DirRoot)
+
+		go TimingCheck(CurContext, client, curtarget, wildcardmap["default"], CheckChan, CurCancel)
 
 		go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
 
@@ -116,7 +116,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			custom:   client,
 			target:   curtarget,
 			wgs:      &wgs,
-			wd:       wd,
+			wdmap:    wildcardmap,
 		}
 
 		go ResHandle(ResChan)
@@ -224,7 +224,8 @@ func AccessWork(WorkPara *PoolPara) {
 			}
 
 			// 和资源不存在页面进行比较
-			comres, err := CompareWildCard(WorkPara.wd, result)
+			comres, err := CustomCompare(WorkPara.wdmap, PreHandleWord, result)
+			//comres, err := CompareWildCard(WorkPara.wdmap["default"], result)
 
 			if comres {
 				ProBar.Clear()
