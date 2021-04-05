@@ -54,10 +54,10 @@ func UpdateDict(dicpath []string, dirroot string) {
 	}
 
 	for _, dic := range dicpath {
-		var OldDict, NewDict []utils.PathDict
+		var OldDict, NewDict []utils.PathInfo
 		filename, ext := utils.GetNameSuffix(dic)
 
-		NewDicPath := filepath.Join(dirroot, "Data", "DefDict", filename+"_new"+".json")
+		NewDicPath := filepath.Join(dirroot, "Data", "DefDict", filename+".json")
 
 		if ext == "" {
 			dic = filepath.Join(dirroot, "Data", "DefDict", filename+".json")

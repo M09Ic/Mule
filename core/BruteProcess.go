@@ -4,6 +4,7 @@ import (
 	"Mule/utils"
 	"context"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/panjf2000/ants"
 	"go.uber.org/zap"
 	"strings"
@@ -229,7 +230,10 @@ func AccessWork(WorkPara *PoolPara) {
 
 			if comres {
 				ProBar.Clear()
-				fmt.Printf("Path:%s \t Code:%d \t Length:%d\n", WorkPara.target+PreHandleWord, result.StatusCode, result.Length)
+				blue := color.New(color.FgBlue).SprintFunc()
+				cy := color.New(color.FgCyan).SprintFunc()
+				red := color.New(color.FgHiMagenta).SprintFunc()
+				fmt.Printf("Path:%s \t Code:%s \t Length:%s\n", blue(WorkPara.target+PreHandleWord), cy(result.StatusCode), red(result.Length))
 				word.Hits += 1
 				Logger.Info("Success",
 					zap.String("Path", WorkPara.target+PreHandleWord),

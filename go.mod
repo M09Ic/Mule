@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/antlabs/strsim v0.0.2
+	github.com/fatih/color v1.10.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/panjf2000/ants v1.3.0
 	github.com/schollz/progressbar/v3 v3.7.6
