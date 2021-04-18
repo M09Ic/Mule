@@ -40,11 +40,11 @@ Flags:
 * 每次扫描结束后会更新一次字典,自我优化迭代
 
 example:
-Mule Brute -u http://baidu.com -f php -u /root/aaa.txt -t 100 -o ./res3.log
+Mule Brute -u http://baidu.com -f php -U /root/aaa.txt -t 100 -o ./res3.log
 
 
 ## 部分设计细节
-1. 会没100次请求后,检测一下是否ip被block了,如果被block则停止
+1. 会没100次请求后,检测一下是否ip被block了,如果被block则停止,block次数默认为3,可以自行根据网络状况更改,网络差的话也容易触发
 2. 使用ctrl+C后会跳过当前目标进入下一个
 3. 在Data目录下有个SpecialList的目录,里面的文件exwildcard是为了部分中间件或者防火墙等对敏感文件后缀做了特殊处理,而容易产生大量误报,如果你发现在目录爆破中出现一个后缀有大量误报,请扩展他.
     1. 扩展格式为/$$.ext,$$为占位符用于替换测试

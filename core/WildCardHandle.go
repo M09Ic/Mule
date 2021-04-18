@@ -10,6 +10,7 @@ import (
 )
 
 var RandomPath string
+var BlackList []int
 
 func Compare30x(WdLoc string, Res string) (bool, error) {
 	// 改为url对比 会出现由于参数问题导致的location对比不合理
@@ -57,7 +58,7 @@ func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 		if result.StatusCode == 200 {
 			comres, err := Compare200(&wd.Body, &result.Body)
 			return comres, err
-		} else if (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503 {
+		} else if (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503 && !IntInSlice(result.StatusCode, BlackList) {
 			return true, nil
 		}
 	// 类型2即资源不存在页面状态码为30x
@@ -67,14 +68,14 @@ func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 		} else if result.StatusCode == wd.StatusCode {
 			comres, err := Compare30x(wd.Location, result.Header.Get("Location"))
 			return comres, err
-		} else if (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503 {
+		} else if (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503 && !IntInSlice(result.StatusCode, BlackList) {
 			return true, nil
 		}
 		// 类型3 即资源不存在页面状态码404或者奇奇怪怪
 	case 3:
 		// TODO 存在nginx的类似301跳转后的404页面
 		if wd.StatusCode != result.StatusCode {
-			if result.StatusCode == 200 || (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503 {
+			if result.StatusCode == 200 || (result.StatusCode > 300 && result.StatusCode < 404) && result.StatusCode == 503 || !IntInSlice(result.StatusCode, BlackList) {
 				return true, nil
 			}
 		}
@@ -175,7 +176,7 @@ func GenWildCardMap(ctx context.Context, client *CustomClient, random string, ta
 
 func GetExPathList(root string) ([]string, error) {
 	// TODO 将加入参数dirroot,这里为了测试方便使用了绝对路径
-	expath := filepath.Join("/Users/puaking/Desktop/Go_program/Mule", "Data", "SpecialList", "exwildcard.txt")
+	expath := filepath.Join(root, "Data", "SpecialList", "exwildcard.txt")
 
 	ex, err := utils.ReadLines(expath)
 	if err != nil {

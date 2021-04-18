@@ -18,6 +18,7 @@ var Countchan = make(chan struct{}, 10000)
 var CurCancel context.CancelFunc
 var CurContext context.Context
 var CheckChan = make(chan int, 10000)
+var Block int
 
 type PoolPara struct {
 	ctx      context.Context
@@ -66,6 +67,7 @@ func ScanPrepare2(ctx context.Context, client *CustomClient, target string, root
 	WdMap, err = GenWildCardMap(ctx, client, RandomPath, target, root)
 
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 

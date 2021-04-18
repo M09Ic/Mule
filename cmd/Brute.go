@@ -53,6 +53,8 @@ func init() {
 	BruteCmd.Flags().StringP("Cookie", "C", "", "Request's Cookie")
 	BruteCmd.Flags().IntP("timeout", "", 5, "request's timeout")
 	BruteCmd.Flags().IntP("Thread", "t", 30, "the size of thread pool")
+	BruteCmd.Flags().IntP("block", "b", 4, "the number of auto stop brute")
+	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
 
 }
 
@@ -159,6 +161,13 @@ func ParseInput(cmd *cobra.Command) (*core.Options, error) {
 	//	panic("please check your dict")
 	//}
 
+	// 处理block数量
+	core.Block, err = cmd.Flags().GetInt("block")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for url: %w", err)
+	}
+
 	// 处理输入的header
 	headers, err := cmd.Flags().GetStringArray("Headers")
 	if err != nil {
@@ -177,6 +186,14 @@ func ParseInput(cmd *cobra.Command) (*core.Options, error) {
 		}
 		header := core.HTTPHeader{Name: key, Value: value}
 		opts.Headers = append(opts.Headers, header)
+	}
+
+	// 处理blasklist
+
+	core.BlackList, err = cmd.Flags().GetIntSlice("blacklist")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for blacklist: %w", err)
 	}
 
 	opts.Cookie, err = cmd.Flags().GetString("Cookie")

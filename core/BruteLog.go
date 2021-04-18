@@ -113,6 +113,15 @@ func StringInSlice(a string, list []string) bool {
 	return false
 }
 
+func IntInSlice(a int, list []int) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan chan struct{}) {
 	// create and start new bar
 

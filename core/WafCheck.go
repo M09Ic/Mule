@@ -68,7 +68,7 @@ func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *W
 					CancelFlag += 1
 				}
 
-				if CancelFlag > 4 {
+				if CancelFlag > Block {
 					fmt.Printf("\nbad luck, you have been blocked %s, there is a waf or check your network\n", target)
 					ctxcancel()
 				}
