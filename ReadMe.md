@@ -21,16 +21,22 @@ Mule Brute [flags]
 
 Flags:
 
-    -C, --Cookie string         Request's Cookie
-    -H, --Headers stringArray   Request's Headers
-    -t, --Thread int            the size of thread pool (default 30)
-    -d, --dic string            dictionary to brute
-    -f, --flag string           use default dictionary in /Data
-    -h, --help                  help for Brute
-    -o, --output string         output res default in ./res.log (default "./res.log")
-    --timeout int               request's timeout (default 2)
-    -u, --url string            brute target
-    -U, --urls string           targets from file
+
+Flags:
+   -C, --Cookie string         Request's Cookie
+   -H, --Headers stringArray   Request's Headers
+   -t, --Thread int            the size of thread pool (default 30)
+   --blacklist ints        the black list of statuscode
+   -b, --block int             the number of auto stop brute (default 4)
+   -d, --dic string            dictionary to brute
+   -f, --flag string           use default dictionary in /Data
+   -h, --help                  help for Brute
+   -o, --output string         output res default in ./res.log (default "./res.log")
+   --timeout int           request's timeout (default 5)
+   -u, --url string            brute target(currently only single url)
+   -U, --urls string           targets from file
+
+
 
 * 默认线程是30,实际测试出来100也完全没事,怕路由器不行,就还是30吧
 * 默认日志是放在当前目录下的res.log中,同时会在console中输出
