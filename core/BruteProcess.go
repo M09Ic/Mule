@@ -219,6 +219,10 @@ func AccessWork(WorkPara *PoolPara) {
 				break
 			}
 
+			if !strings.HasPrefix(PreHandleWord, "/") {
+				PreHandleWord = "/" + PreHandleWord
+			}
+
 			result, err := WorkPara.custom.RunRequest(WorkPara.ctx, WorkPara.target+PreHandleWord)
 
 			if err != nil {
@@ -235,7 +239,7 @@ func AccessWork(WorkPara *PoolPara) {
 				blue := color.New(color.FgBlue).SprintFunc()
 				cy := color.New(color.FgCyan).SprintFunc()
 				red := color.New(color.FgHiMagenta).SprintFunc()
-				fmt.Printf("Path:%s \t Code:%s \t Length:%s\n", blue(WorkPara.target+PreHandleWord), cy(result.StatusCode), red(result.Length))
+				fmt.Printf("Path: %s \t Code:%s \t Length:%s\n", blue(WorkPara.target+PreHandleWord), cy(result.StatusCode), red(result.Length))
 				word.Hits += 1
 				Logger.Info("Success",
 					zap.String("Path", WorkPara.target+PreHandleWord),
