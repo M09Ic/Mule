@@ -23,18 +23,18 @@ Flags:
 
 
 Flags:
-   -C, --Cookie string         Request's Cookie
-   -H, --Headers stringArray   Request's Headers
-   -t, --Thread int            the size of thread pool (default 30)
-   --blacklist ints        the black list of statuscode
-   -b, --block int             the number of auto stop brute (default 4)
-   -d, --dic string            dictionary to brute
-   -f, --flag string           use default dictionary in /Data
-   -h, --help                  help for Brute
-   -o, --output string         output res default in ./res.log (default "./res.log")
-   --timeout int           request's timeout (default 5)
-   -u, --url string            brute target(currently only single url)
-   -U, --urls string           targets from file
+   * -C, --Cookie string         Request's Cookie
+   * -H, --Headers stringArray   Request's Headers
+   * -t, --Thread int            the size of thread pool (default 30)
+   * --blacklist ints        the black list of statuscode
+   * -b, --block int             the number of auto stop brute (default 4)
+   * -d, --dic string            dictionary to brute
+   * -f, --flag string           use default dictionary in /Data
+   * -h, --help                  help for Brute
+   * -o, --output string         output res default in ./res.log (default "./res.log")
+   * --timeout int           request's timeout (default 5)
+   * -u, --url string            brute target(currently only single url)
+   * -U, --urls string           targets from file
 
 
 
