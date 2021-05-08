@@ -62,6 +62,10 @@ func StartBrute(cmd *cobra.Command, args []string) error {
 
 	//start := time.Now() // 获取当前时间
 
+	fmt.Println(core.Mule)
+
+	fmt.Println(core.Version)
+
 	opts, err := ParseInput(cmd)
 
 	if err != nil {

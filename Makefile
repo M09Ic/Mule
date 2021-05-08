@@ -1,6 +1,6 @@
 # Binary name
 BINARY= Mule
-VERSION = 0.3.2beta
+VERSION = 0.3.3beta
 # Builds the project
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./main.go

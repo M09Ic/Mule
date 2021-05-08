@@ -58,6 +58,8 @@ Mule Brute -u http://baidu.com -f php -U /root/aaa.txt -t 100 -o ./res3.log
 
 
 
-## TODO
-1. waf 识别? 思考了一下有waf也就不爆破,不如乘着没被封多爆破几下
+## 性能对比
 
+1. 御剑
+2. dirsearch
+3. ferobuster
