@@ -62,4 +62,6 @@ Mule Brute -u http://baidu.com -f php -U /root/aaa.txt -t 100 -o ./res3.log
 
 1. 御剑
 2. dirsearch
-3. ferobuster
+
+
+在1核1g的阿里云下，线程超时均相同的情况下进行测试，得出结果，比御剑和dirsearch速度均优于50%。
