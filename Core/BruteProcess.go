@@ -1,4 +1,4 @@
-package core
+package Core
 
 import (
 	"Mule/utils"
@@ -104,14 +104,15 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			ipv4 := string(r.Find([]byte(curtarget)))
 			client, err := cdncheck.NewWithCache()
 			if err == nil {
-				if found, err := client.Check(net.ParseIP("173.245.48.12")); found && err == nil {
+
+				if found, err := client.Check(net.ParseIP(ipv4)); found && err == nil {
 					fmt.Printf("%v is a part of cdn, so pass", ipv4)
 					continue
 				}
 			}
 
 		}
-
+		//
 		//// 完成对不存在页面的处理
 		//
 		//wd, err := HandleWildCard(wildcard)

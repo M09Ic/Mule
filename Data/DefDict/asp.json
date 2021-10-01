@@ -55309,7 +55309,7 @@
     },
     {
         "path": "/%3f.aspx",
-        "hits": 1
+        "hits": 2
     },
     {
         "path": "/admin/htmledit/xxmgadmin_login.asp",
@@ -84009,7 +84009,7 @@
     },
     {
         "path": "/***.aspx",
-        "hits": 1
+        "hits": 2
     },
     {
         "path": "/bar.aspx",
@@ -114453,7 +114453,7 @@
     },
     {
         "path": "/ewebedit/db/&23ewebeditor.aspx",
-        "hits": 1
+        "hits": 2
     },
     {
         "path": "/fbxjonews.asp",

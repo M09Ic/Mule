@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"Mule/core"
+	"Mule/Core"
 	"Mule/utils"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -62,9 +62,9 @@ func StartBrute(cmd *cobra.Command, args []string) error {
 
 	//start := time.Now() // 获取当前时间
 
-	fmt.Println(core.Mule)
+	fmt.Println(Core.Mule)
 
-	fmt.Println(core.Version)
+	fmt.Println(Core.Version)
 
 	opts, err := ParseInput(cmd)
 
@@ -73,13 +73,13 @@ func StartBrute(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	CustomClient := &core.CustomClient{}
+	CustomClient := &Core.CustomClient{}
 
 	CustomClient, err = CustomClient.NewHttpClient(opts)
 
 	CustomClient.Headers = opts.Headers
 
-	err = core.ScanTask(maincontext, *opts, CustomClient)
+	err = Core.ScanTask(maincontext, *opts, CustomClient)
 
 	if err != nil {
 		return err
@@ -91,8 +91,8 @@ func StartBrute(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func ParseInput(cmd *cobra.Command) (*core.Options, error) {
-	opts := core.Options{}
+func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
+	opts := Core.Options{}
 
 	var err error
 	var FTargets []string
@@ -159,14 +159,14 @@ func ParseInput(cmd *cobra.Command) (*core.Options, error) {
 
 	opts.Dictionary = append(opts.Dictionary, defslice...)
 
-	//alive, err := core.PathExists(opts.Dictionary)
+	//alive, err := Core.PathExists(opts.Dictionary)
 	//
 	//if !alive{
 	//	panic("please check your dict")
 	//}
 
 	// 处理block数量
-	core.Block, err = cmd.Flags().GetInt("block")
+	Core.Block, err = cmd.Flags().GetInt("block")
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for url: %w", err)
@@ -188,13 +188,13 @@ func ParseInput(cmd *cobra.Command) (*core.Options, error) {
 		if len(key) == 0 {
 			return &opts, fmt.Errorf("invalid header format for header %q - name is empty", h)
 		}
-		header := core.HTTPHeader{Name: key, Value: value}
+		header := Core.HTTPHeader{Name: key, Value: value}
 		opts.Headers = append(opts.Headers, header)
 	}
 
 	// 处理blasklist
 
-	core.BlackList, err = cmd.Flags().GetIntSlice("blacklist")
+	Core.BlackList, err = cmd.Flags().GetIntSlice("blacklist")
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for blacklist: %w", err)
@@ -224,7 +224,7 @@ func ParseInput(cmd *cobra.Command) (*core.Options, error) {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
 	}
 
-	core.InitLogger(LogFile)
+	Core.InitLogger(LogFile)
 
 	return &opts, nil
 

@@ -1,4 +1,4 @@
-package core
+package Core
 
 import (
 	"Mule/utils"
@@ -31,7 +31,7 @@ func InitLogger(logfile string) {
 	}
 	encoder := zapcore.NewJSONEncoder(encoderConfig)
 
-	//core := zapcore.NewCore(encoder,zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout)), zapcore.DebugLevel)
+	//Core := zapcore.NewCore(encoder,zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout)), zapcore.DebugLevel)
 	core := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(writeSyncer), zapcore.DebugLevel)
 	Logger = zap.New(core)
 }
