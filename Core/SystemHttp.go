@@ -29,6 +29,8 @@ func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 100,
 			//DisableKeepAlives: true,
 		},
 		Timeout: time.Second * time.Duration(Opt.Timeout),
@@ -44,7 +46,7 @@ func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 }
 
 func (custom *CustomClient) RunRequest(ctx context.Context, Url string) (*ReqRes, error) {
-
+	//defer utils.TimeCost()()
 	response, err := custom.DoRequest(ctx, Url)
 
 	result := ReqRes{}

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-var ResChan = make(chan utils.PathDict, 10)
+var ResChan = make(chan utils.PathDict, 1000)
 
 var ResSlice []utils.PathDict
 
@@ -23,6 +23,10 @@ var CheckFlag int
 //初始化log
 
 func InitLogger(logfile string) {
+	//defer utils.TimeCost()()
+	//
+	//fmt.Println("Start init logger")
+
 	writeSyncer, _ := os.Create(logfile)
 
 	encoderConfig := zap.NewProductionEncoderConfig()
@@ -46,6 +50,8 @@ func ResHandle(reschan chan utils.PathDict) []utils.PathDict {
 }
 
 func UpdateDict(dicpath []string, dirroot string) {
+	//defer utils.TimeCost()()
+	//fmt.Println("start update dict")
 
 	DictMap := make(map[string][]string)
 

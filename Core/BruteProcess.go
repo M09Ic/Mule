@@ -55,6 +55,8 @@ func ScanPrepare(ctx context.Context, client *CustomClient, target string) (*Req
 
 func ScanPrepare2(ctx context.Context, client *CustomClient, target string, root string) (map[string]*WildCard, error) {
 
+	//defer utils.TimeCost()()
+	//fmt.Println("start scan prepare")
 	var WdMap map[string]*WildCard
 
 	_, err := client.RunRequest(ctx, target)
@@ -128,7 +130,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		ScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
 			CuPara := Para.(PoolPara)
 			AccessWork(&CuPara)
-		}, ants.WithExpiryDuration(2*time.Second))
+		})
 
 		var wgs sync.WaitGroup
 
@@ -166,33 +168,6 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 	return nil
 }
 
-//func MakeWordChan(DicPath string) chan string {
-//	file, err := os.Open(DicPath)
-//
-//	WordChan := make(chan string)
-//
-//	if err != nil {
-//		panic("please check your dictionary")
-//	}
-//
-//	buf := bufio.NewReader(file)
-//
-//	go func() {
-//		for {
-//			line, _, err := buf.ReadLine()
-//			if err == io.EOF {
-//				break
-//			}
-//			WordChan <- string(line)
-//
-//		}
-//		file.Close()
-//		close(WordChan)
-//	}()
-//
-//	return WordChan
-//}
-
 func MakeWordChan(DicSlice []string, DirRoot string) chan utils.PathDict {
 	WordChan := make(chan utils.PathDict)
 
@@ -213,10 +188,6 @@ func MakeWordChan(DicSlice []string, DirRoot string) chan utils.PathDict {
 	}()
 
 	return WordChan
-}
-
-func f(x string) string {
-	return x
 }
 
 func AccessWork(WorkPara *PoolPara) {
@@ -255,6 +226,7 @@ func AccessWork(WorkPara *PoolPara) {
 			}
 
 			// 和资源不存在页面进行比较
+
 			comres, err := CustomCompare(WorkPara.wdmap, PreHandleWord, result)
 			//comres, err := CompareWildCard(WorkPara.wdmap["default"], result)
 

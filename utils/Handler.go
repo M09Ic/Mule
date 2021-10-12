@@ -30,6 +30,14 @@ const (
 	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
+func TimeCost() func() {
+	start := time.Now()
+	return func() {
+		tc := time.Since(start)
+		fmt.Printf("time cost = %v\n", tc)
+	}
+}
+
 type PathDict struct {
 	PathInfo
 	Tag string
@@ -112,6 +120,9 @@ func ReadDict(info []string, root string) []PathDict {
 	/*
 		用来读取目录字典的数据，转换成列表的形式
 	*/
+
+	//defer TimeCost()()
+	fmt.Println("start read dict")
 
 	var allJson []PathDict
 	var err error

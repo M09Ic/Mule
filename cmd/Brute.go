@@ -53,7 +53,7 @@ func init() {
 	BruteCmd.Flags().StringP("Cookie", "C", "", "Request's Cookie")
 	BruteCmd.Flags().IntP("timeout", "", 5, "request's timeout")
 	BruteCmd.Flags().IntP("Thread", "t", 30, "the size of thread pool")
-	BruteCmd.Flags().IntP("block", "b", 4, "the number of auto stop brute")
+	BruteCmd.Flags().IntP("block", "b", 10, "the number of auto stop brute")
 	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
 
 }
