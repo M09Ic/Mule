@@ -44,7 +44,7 @@ func TriggerWaf(ctx context.Context, client *CustomClient, target string, wd *Wi
 
 }
 
-func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *WildCard, ck chan int, ctxcancel context.CancelFunc) {
+func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *WildCard, ck chan struct{}, ctxcancel context.CancelFunc) {
 	CheckFlag = 0
 	CancelFlag = 0
 	for {
@@ -58,6 +58,7 @@ func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *W
 			CheckFlag += 1
 			if CheckFlag%100 == 0 && CheckFlag != 0 {
 				res, err := TriggerWaf(ctx, client, target, wd)
+				//fmt.Println(len(RepChan))
 				if err != nil {
 					//fmt.Printf("bad luck, you have been blocked %s, there is a waf or check your network\n", target)
 					//ctxcancel()

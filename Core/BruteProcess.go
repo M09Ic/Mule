@@ -4,10 +4,8 @@ import (
 	"Mule/utils"
 	"context"
 	"fmt"
-	"github.com/fatih/color"
 	"github.com/panjf2000/ants"
 	"github.com/projectdiscovery/cdncheck"
-	"go.uber.org/zap"
 	"net"
 	"regexp"
 	"strings"
@@ -20,7 +18,8 @@ var Countchan = make(chan struct{}, 10000)
 
 var CurCancel context.CancelFunc
 var CurContext context.Context
-var CheckChan = make(chan int, 10000)
+var CheckChan = make(chan struct{}, 10000)
+var RepChan = make(chan *Resp, 1000)
 var Block int
 
 type PoolPara struct {
@@ -32,28 +31,7 @@ type PoolPara struct {
 	wdmap    map[string]*WildCard
 }
 
-func ScanPrepare(ctx context.Context, client *CustomClient, target string) (*ReqRes, error) {
-
-	_, err := client.RunRequest(ctx, target)
-
-	if err != nil {
-		return nil, fmt.Errorf("cann't connect to %s", target)
-	}
-
-	RandomPath = utils.RandStringBytesMaskImprSrcUnsafe(12)
-
-	// TODO 暂时是不以/结尾所以在随机资源这里加了一个斜杠
-	wildcard, err := client.RunRequest(ctx, target+"/"+RandomPath)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return wildcard, nil
-
-}
-
-func ScanPrepare2(ctx context.Context, client *CustomClient, target string, root string) (map[string]*WildCard, error) {
+func ScanPrepare(ctx context.Context, client *CustomClient, target string, root string) (map[string]*WildCard, error) {
 
 	//defer utils.TimeCost()()
 	//fmt.Println("start scan prepare")
@@ -93,7 +71,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
 
-		wildcardmap, err := ScanPrepare2(ctx, client, curtarget, Opts.DirRoot)
+		wildcardmap, err := ScanPrepare(ctx, client, curtarget, Opts.DirRoot)
 
 		if err != nil {
 			fmt.Println(err)
@@ -114,43 +92,55 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			}
 
 		}
-		//
-		//// 完成对不存在页面的处理
-		//
-		//wd, err := HandleWildCard(wildcard)
 
 		//读取字典返回管道
 		WordChan := MakeWordChan(Opts.Dictionary, Opts.DirRoot)
-
+		//检测成功后初始化各类插件
+		// waf检测
 		go TimingCheck(CurContext, client, curtarget, wildcardmap["default"], CheckChan, CurCancel)
-
+		//进度条
 		go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
 
 		//  开启线程池
-		ScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
+		ReqScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
 			CuPara := Para.(PoolPara)
 			AccessWork(&CuPara)
 		})
 
-		var wgs sync.WaitGroup
+		RepScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
+			CuPara := Para.(ResponsePara)
+			AccessResponseWork(&CuPara)
+		})
+
+		var ReqWgs, RepWgs sync.WaitGroup
 
 		PrePara := PoolPara{
 			ctx:      CurContext,
 			wordchan: WordChan,
 			custom:   client,
 			target:   curtarget,
-			wgs:      &wgs,
+			wgs:      &ReqWgs,
 			wdmap:    wildcardmap,
 		}
 
+		RespPre := ResponsePara{
+			ctx:     CurContext,
+			repchan: RepChan,
+			wgs:     &RepWgs,
+			wdmap:   wildcardmap,
+		}
+
+		//开启结果协程
 		go ResHandle(ResChan)
 
 		for i := 0; i < Opts.Thread; i++ {
-			wgs.Add(1)
-			_ = ScanPool.Invoke(PrePara)
+			ReqWgs.Add(1)
+			_ = RepScanPool.Invoke(RespPre)
+			_ = ReqScanPool.Invoke(PrePara)
 		}
 
-		wgs.Wait()
+		//等待结束
+		ReqWgs.Wait()
 
 		//elapsed := time.Since(t1)
 		//fmt.Println("App elapsed: ", elapsed)
@@ -205,13 +195,13 @@ func AccessWork(WorkPara *PoolPara) {
 			}
 
 			Countchan <- struct{}{}
-			CheckChan <- 1
+			CheckChan <- struct{}{}
 
 			path := word.Path
 
 			PreHandleWord := strings.TrimSpace(path)
 			if strings.HasPrefix(PreHandleWord, "#") || len(PreHandleWord) == 0 {
-				break
+				continue
 			}
 
 			if !strings.HasPrefix(PreHandleWord, "/") {
@@ -225,25 +215,16 @@ func AccessWork(WorkPara *PoolPara) {
 				continue
 			}
 
-			// 和资源不存在页面进行比较
-
-			comres, err := CustomCompare(WorkPara.wdmap, PreHandleWord, result)
-			//comres, err := CompareWildCard(WorkPara.wdmap["default"], result)
-
-			if comres {
-				ProBar.Clear()
-				blue := color.New(color.FgBlue).SprintFunc()
-				cy := color.New(color.FgCyan).SprintFunc()
-				red := color.New(color.FgHiMagenta).SprintFunc()
-				fmt.Printf("Path: %s \t Code:%s \t Length:%s\n", blue(WorkPara.target+PreHandleWord), cy(result.StatusCode), red(result.Length))
-				word.Hits += 1
-				Logger.Info("Success",
-					zap.String("Path", WorkPara.target+PreHandleWord),
-					zap.Int("Code", result.StatusCode),
-					zap.Int64("Length", result.Length))
-				ResChan <- word
-
+			curresp := Resp{
+				resp: result,
+				finpath: handledpath{
+					target:        WorkPara.target,
+					PreHandleWord: PreHandleWord,
+				},
+				path: word,
 			}
+
+			RepChan <- &curresp
 
 		}
 	}
