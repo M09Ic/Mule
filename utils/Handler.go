@@ -247,3 +247,15 @@ func ReadTarget(targetfile string) (TargetList []string, err error) {
 	}
 	return TargetList, err
 }
+
+func FilterNewLines(s string) string {
+	return regexp.MustCompile(`[\t\r\n]+`).ReplaceAllString(strings.TrimSpace(s), " ")
+}
+
+func GetExtType(rawUrl string) string {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		return ""
+	}
+	return path.Ext(u.Path)
+}

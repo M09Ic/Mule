@@ -18,8 +18,10 @@ package cmd
 import (
 	"Mule/Core"
 	"Mule/utils"
+	"crypto/tls"
 	"fmt"
 	"github.com/spf13/cobra"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -47,6 +49,7 @@ func init() {
 	BruteCmd.Flags().StringP("url", "u", "", "brute target(currently only single url)")
 	BruteCmd.Flags().StringP("urls", "U", "", "targets from file")
 	BruteCmd.Flags().StringP("dic", "d", "", "dictionary to brute")
+	BruteCmd.Flags().StringP("mod", "m", "default", "brute mod select")
 	BruteCmd.Flags().StringP("flag", "f", "", "use default dictionary in /Data")
 	BruteCmd.Flags().StringP("output", "o", "./res.log", "output res default in ./res.log")
 	BruteCmd.Flags().StringArrayP("Headers", "H", []string{}, "Request's Headers")
@@ -218,10 +221,25 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for timeout: %w", err)
 	}
 
+	opts.Mod, err = cmd.Flags().GetString("mod")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for timeout: %w", err)
+	}
+
 	LogFile, err := cmd.Flags().GetString("output")
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
+	}
+
+	opts.Transport = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+		MaxIdleConns:        1000,
+		MaxIdleConnsPerHost: 100,
+		//DisableKeepAlives: true,
 	}
 
 	Core.InitLogger(LogFile)

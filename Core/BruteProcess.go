@@ -37,7 +37,10 @@ func ScanPrepare(ctx context.Context, client *CustomClient, target string, root 
 	//fmt.Println("start scan prepare")
 	var WdMap map[string]*WildCard
 
-	_, err := client.RunRequest(ctx, target)
+	_, err := client.RunRequest(ctx, target, Additional{
+		Mod:   "default",
+		Value: "",
+	})
 
 	if err != nil {
 		return nil, fmt.Errorf("cann't connect to %s", target)
@@ -62,6 +65,8 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	taskroot, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot)
 
 	for _, curtarget := range Opts.Target {
 		CheckFlag = 0
@@ -94,7 +99,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		}
 
 		//读取字典返回管道
-		WordChan := MakeWordChan(Opts.Dictionary, Opts.DirRoot)
+		WordChan := MakeWordChan(alljson)
 		//检测成功后初始化各类插件
 		// waf检测
 		go TimingCheck(CurContext, client, curtarget, wildcardmap["default"], CheckChan, CurCancel)
@@ -128,6 +133,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			repchan: RepChan,
 			wgs:     &RepWgs,
 			wdmap:   wildcardmap,
+			mod:     Opts.Mod,
 		}
 
 		//开启结果协程
@@ -158,10 +164,8 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 	return nil
 }
 
-func MakeWordChan(DicSlice []string, DirRoot string) chan utils.PathDict {
+func MakeWordChan(alljson []utils.PathDict) chan utils.PathDict {
 	WordChan := make(chan utils.PathDict)
-
-	alljson := utils.ReadDict(DicSlice, DirRoot)
 
 	if len(alljson) == 0 {
 		panic("please check your dict")
@@ -204,11 +208,12 @@ func AccessWork(WorkPara *PoolPara) {
 				continue
 			}
 
-			if !strings.HasPrefix(PreHandleWord, "/") {
-				PreHandleWord = "/" + PreHandleWord
+			add := Additional{
+				Mod:   WorkPara.custom.Mod,
+				Value: PreHandleWord,
 			}
 
-			result, err := WorkPara.custom.RunRequest(WorkPara.ctx, WorkPara.target+PreHandleWord)
+			result, err := WorkPara.custom.RunRequest(WorkPara.ctx, WorkPara.target, add)
 
 			if err != nil {
 				// TODO 错误处理

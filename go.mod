@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/antlabs/strsim v0.0.2
 	github.com/fatih/color v1.10.0
+	github.com/gocolly/colly/v2 v2.1.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/panjf2000/ants v1.3.0
 	github.com/projectdiscovery/cdncheck v0.0.2

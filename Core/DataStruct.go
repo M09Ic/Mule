@@ -13,6 +13,8 @@ type Options struct {
 	Target     []string
 	Cookie     string
 	Method     string
+	Mod        string
+	Transport  *http.Transport
 }
 
 type ReqRes struct {

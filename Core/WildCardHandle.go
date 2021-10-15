@@ -135,40 +135,49 @@ func HandleWildCard(wildcard *ReqRes) (*WildCard, error) {
 
 func GenWildCardMap(ctx context.Context, client *CustomClient, random string, target string, proroot string) (map[string]*WildCard, error) {
 	var Testpath string
-	var err error
 	var wd *WildCard
 	resmap := make(map[string]*WildCard)
 
-	wdlist, err := GetExPathList(proroot)
+	switch client.Mod {
+	case "default":
+		wdlist, err := GetExPathList(proroot)
 
-	wdlist = append(wdlist, "")
+		wdlist = append(wdlist, "")
 
-	if err != nil {
-		return nil, err
-	}
-
-	for _, ex := range wdlist {
-		if ex == "" {
-			Testpath = "/" + RandomPath
-			wd, err = GenWd(ctx, client, target, Testpath)
-			if err != nil {
-				return nil, err
-			}
-			resmap["default"] = wd
-
-		} else if !strings.Contains(ex, "$$") {
-			fmt.Printf("%s don't have symbol $$, please check\n", ex)
-			continue
-		} else {
-			Testpath = strings.Replace(ex, "$$", random, 1)
-			wd, err = GenWd(ctx, client, target, Testpath)
-			if err != nil {
-				return nil, fmt.Errorf("When you test %s, there is something error\n", ex)
-			}
-			in := strings.Index(ex, "$$")
-			key := ex[in+2:]
-			resmap[key] = wd
+		if err != nil {
+			return nil, err
 		}
+
+		for _, ex := range wdlist {
+			if ex == "" {
+				Testpath = "/" + RandomPath
+				wd, err = GenWd(ctx, client, target, Testpath)
+				if err != nil {
+					return nil, err
+				}
+				resmap["default"] = wd
+
+			} else if !strings.Contains(ex, "$$") {
+				fmt.Printf("%s don't have symbol $$, please check\n", ex)
+				continue
+			} else {
+				Testpath = strings.Replace(ex, "$$", random, 1)
+				wd, err = GenWd(ctx, client, target, Testpath)
+				if err != nil {
+					return nil, fmt.Errorf("When you test %s, there is something error\n", ex)
+				}
+				in := strings.Index(ex, "$$")
+				key := ex[in+2:]
+				resmap[key] = wd
+			}
+		}
+	case "host":
+		Testpath = "/"
+		wd, err := GenWd(ctx, client, target, Testpath)
+		if err != nil {
+			return nil, err
+		}
+		resmap["default"] = wd
 	}
 
 	return resmap, nil
@@ -189,7 +198,10 @@ func GetExPathList(root string) ([]string, error) {
 }
 
 func GenWd(ctx context.Context, client *CustomClient, target string, Tpath string) (*WildCard, error) {
-	wildcard, err := client.RunRequest(ctx, target+Tpath)
+	wildcard, err := client.RunRequest(ctx, target, Additional{
+		Mod:   "default",
+		Value: Tpath,
+	})
 
 	if err != nil {
 		return nil, err

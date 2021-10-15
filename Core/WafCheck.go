@@ -10,7 +10,10 @@ var CancelFlag int
 // 定期检测是否触发了安全设备被block了
 func TriggerWaf(ctx context.Context, client *CustomClient, target string, wd *WildCard) (bool, error) {
 
-	WafTest, err := client.RunRequest(ctx, target+"/"+RandomPath)
+	WafTest, err := client.RunRequest(ctx, target, Additional{
+		Mod:   "default",
+		Value: RandomPath,
+	})
 
 	if err != nil {
 		return true, fmt.Errorf("bad luck, you have been blocked %s, there is a waf or check your network", target)

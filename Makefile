@@ -1,6 +1,6 @@
 # Binary name
 BINARY= Mule
-VERSION = 0.3.3beta
+VERSION = 0.6.4beta
 # Builds the project
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./main.go
@@ -16,6 +16,7 @@ release-upx:
 		upx -2 ./bin/Mule-mac64-${VERSION}
 		# Build for linux
 		#go clean
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/Mule-linux64-${VERSION} ./main.go
 		upx -2 ./bin/Mule-linux64-${VERSION}
 		#go clean
 		CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -ldflags "-s -w" -o ./bin/Mule-linux32-${VERSION} ./main.go

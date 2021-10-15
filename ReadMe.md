@@ -1,9 +1,7 @@
 # Mule
 
-> 一个沙雕的毕业设计
->
 > 一个垃圾的目录扫描工具
-> 
+>
 > 名字叫:可变异的Web目录模糊测试工具
 
 
@@ -25,6 +23,7 @@ Flags:
 Flags:
    * -C, --Cookie string         Request's Cookie
    * -H, --Headers stringArray   Request's Headers
+   * -m, --mod string            default to brute dict, set '-m host' to brute host
    * -t, --Thread int            the size of thread pool (default 30)
    * --blacklist ints        the black list of statuscode
    * -b, --block int             the number of auto stop brute (default 4)

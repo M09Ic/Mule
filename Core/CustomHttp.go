@@ -2,7 +2,6 @@ package Core
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -15,6 +14,7 @@ import (
 type CustomClient struct {
 	CuClient *http.Client
 	Method   string
+	Mod      string
 	Headers  []HTTPHeader
 }
 
@@ -23,17 +23,15 @@ type HTTPHeader struct {
 	Value string
 }
 
+type Additional struct {
+	Mod   string
+	Value string
+}
+
 func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 	custom.CuClient = &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true,
-			},
-			MaxIdleConns:        100,
-			MaxIdleConnsPerHost: 100,
-			//DisableKeepAlives: true,
-		},
-		Timeout: time.Second * time.Duration(Opt.Timeout),
+		Transport: Opt.Transport,
+		Timeout:   time.Second * time.Duration(Opt.Timeout),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -41,13 +39,15 @@ func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 
 	custom.Method = Opt.Method
 	custom.Headers = Opt.Headers
+	custom.Mod = Opt.Mod
 
 	return custom, nil
 }
 
-func (custom *CustomClient) RunRequest(ctx context.Context, Url string) (*ReqRes, error) {
+func (custom *CustomClient) RunRequest(ctx context.Context, Url string, Para Additional) (*ReqRes, error) {
 	//defer utils.TimeCost()()
-	response, err := custom.DoRequest(ctx, Url)
+
+	response, err := custom.DoRequest(ctx, Url, Para)
 
 	result := ReqRes{}
 
@@ -75,9 +75,16 @@ func (custom *CustomClient) RunRequest(ctx context.Context, Url string) (*ReqRes
 
 }
 
-func (custom *CustomClient) DoRequest(ctx context.Context, Url string) (response *http.Response, err error) {
+func (custom *CustomClient) DoRequest(ctx context.Context, Url string, Para Additional) (response *http.Response, err error) {
 
 	//request, err := http.NewRequest(custom.Method, Url, nil)
+
+	if Para.Mod == "default" {
+		if !strings.HasPrefix(Para.Value, "/") {
+			Para.Value = "/" + Para.Value
+		}
+		Url = Url + Para.Value
+	}
 
 	request, err := http.NewRequest("GET", Url, nil)
 
@@ -89,6 +96,11 @@ func (custom *CustomClient) DoRequest(ctx context.Context, Url string) (response
 
 	for _, header := range custom.Headers {
 		request.Header.Set(header.Name, header.Value)
+	}
+
+	if Para.Mod == "host" {
+		request.Header.Set("test", "test")
+		request.Host = Para.Value
 	}
 
 	response, err = custom.CuClient.Do(request)
