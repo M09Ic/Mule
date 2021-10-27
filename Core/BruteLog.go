@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 )
@@ -27,7 +28,7 @@ func InitLogger(logfile string) {
 	//
 	//fmt.Println("Start init logger")
 
-	writeSyncer, _ := os.Create(logfile)
+	writeSyncer, _ := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
 
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig = zapcore.EncoderConfig{
@@ -47,6 +48,25 @@ func ResHandle(reschan chan utils.PathDict) []utils.PathDict {
 
 	return ResSlice
 
+}
+
+func OutputLinkFinder() {
+	for fromurl, linklist := range SpiderUrlMap {
+		parurl, _ := url.Parse(fromurl)
+		op, _ := os.OpenFile(parurl.Host, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
+		op.WriteString(fromurl + "\n")
+		for _, link := range linklist {
+			op.WriteString("\t" + link + "\n")
+		}
+	}
+	for fromurl, linklist := range SpiderJsMap {
+		parurl, _ := url.Parse(fromurl)
+		op, _ := os.OpenFile(parurl.Host, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
+		op.WriteString(fromurl + "\n")
+		for _, link := range linklist {
+			op.WriteString("\t" + link + "\n")
+		}
+	}
 }
 
 func UpdateDict(dicpath []string, dirroot string) {

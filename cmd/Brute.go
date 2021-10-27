@@ -58,6 +58,7 @@ func init() {
 	BruteCmd.Flags().IntP("Thread", "t", 30, "the size of thread pool")
 	BruteCmd.Flags().IntP("block", "b", 10, "the number of auto stop brute")
 	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
+	BruteCmd.Flags().BoolP("js", "j", true, "finder js from page")
 
 }
 
@@ -228,6 +229,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	}
 
 	LogFile, err := cmd.Flags().GetString("output")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
+	}
+
+	opts.JsFinder, err = cmd.Flags().GetBool("js")
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)

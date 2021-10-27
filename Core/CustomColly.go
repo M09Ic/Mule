@@ -17,12 +17,14 @@ var DefaultDepth = 1
 type Crawler struct {
 	// js的发现器
 	LinkFinderCollector *colly.Collector
+	Transport           *http.Transport
+	Timeout             int
 	// 基础的页面发现
 	NormalCollector *colly.Collector
 	site            *url.URL
 }
 
-func NewCollyClient(target string, Opt *Options) *Crawler {
+func NewCollyClient(Opt *Options) *Crawler {
 
 	newcolly := colly.NewCollector(
 		//TODO 记得把sync开回来，异步加速
@@ -31,14 +33,43 @@ func NewCollyClient(target string, Opt *Options) *Crawler {
 		colly.IgnoreRobotsTxt(),
 	)
 
+	if len(Opt.Headers) != 0 {
+		for _, header := range Opt.Headers {
+			newcolly.OnRequest(func(r *colly.Request) {
+				r.Headers.Set(header.Name, header.Value)
+			})
+		}
+	}
+
+	extensions.RandomUserAgent(newcolly)
+
+	err := newcolly.Limit(&colly.LimitRule{
+		DomainGlob: "*",
+		//colly的线程，限制直接写死为10
+		Parallelism: 10,
+		Delay:       time.Duration(Opt.Timeout) * time.Second,
+		RandomDelay: time.Duration(Opt.Timeout) * time.Second,
+	})
+
+	if err != nil {
+		panic("Failed to set Limit Rule")
+	}
+
+	return &Crawler{
+		NormalCollector: newcolly,
+		Transport:       Opt.Transport,
+		Timeout:         Opt.Timeout,
+	}
+}
+
+func (crawler *Crawler) Start(target string) {
 	HdTarget, err := url.Parse(target)
 	if err != nil {
 		panic("please check your url")
 	}
-
 	spiderclient := &http.Client{
-		Transport: Opt.Transport,
-		Timeout:   time.Second * time.Duration(Opt.Timeout),
+		Transport: crawler.Transport,
+		Timeout:   time.Second * time.Duration(crawler.Timeout),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// 最多跳转十次，以防出现设计失误导致的无限跳转
 			if len(via) >= 10 {
@@ -55,44 +86,11 @@ func NewCollyClient(target string, Opt *Options) *Crawler {
 			return http.ErrUseLastResponse
 		},
 	}
-
-	if len(Opt.Headers) != 0 {
-		for _, header := range Opt.Headers {
-			newcolly.OnRequest(func(r *colly.Request) {
-				r.Headers.Set(header.Name, header.Value)
-			})
-		}
-	}
-
-	extensions.RandomUserAgent(newcolly)
-
-	newcolly.SetClient(spiderclient)
-
-	err = newcolly.Limit(&colly.LimitRule{
-		DomainGlob: "*",
-		//colly的线程，限制直接写死为10
-		Parallelism: 10,
-		Delay:       time.Duration(Opt.Timeout) * time.Second,
-		RandomDelay: time.Duration(Opt.Timeout) * time.Second,
-	})
-
-	if err != nil {
-		panic("Failed to set Limit Rule")
-	}
-
-	linkfinder := newcolly.Clone()
-
-	return &Crawler{
-		LinkFinderCollector: linkfinder,
-		NormalCollector:     newcolly,
-		site:                HdTarget,
-	}
-}
-
-func (crawler *Crawler) Start() {
+	crawler.site = HdTarget
+	crawler.NormalCollector.SetClient(spiderclient)
 	crawler.init()
-	go SpiderResHandle(SpiderChan)
-	err := crawler.NormalCollector.Visit(crawler.site.String())
+
+	err = crawler.NormalCollector.Visit(crawler.site.String())
 
 	if err != nil {
 		panic("Failed to start ")
@@ -102,6 +100,7 @@ func (crawler *Crawler) Start() {
 func (crawler *Crawler) init() {
 	// 初始化各类返回监听器
 	//初始化js finder
+	crawler.LinkFinderCollector = crawler.NormalCollector.Clone()
 	crawler.LinkFinderCollector.OnResponse(func(response *colly.Response) {
 		if response.StatusCode == 404 || response.StatusCode == 429 || response.StatusCode < 100 {
 			return
@@ -112,9 +111,9 @@ func (crawler *Crawler) init() {
 		// Verify which link is working
 		u := response.Request.URL.String()
 
-		outputFormat := fmt.Sprintf("[url] - [code-%d] - [len_%d] - %s", response.StatusCode, len(respStr), u)
-
-		fmt.Println(outputFormat)
+		//outputFormat := fmt.Sprintf("[url] - [code-%d] - [len_%d] - %s", response.StatusCode, len(respStr), u)
+		//
+		//fmt.Println(outputFormat)
 
 		//crawler.findAWSS3(respStr)
 
@@ -131,6 +130,7 @@ func (crawler *Crawler) init() {
 		}
 
 		res := SpiderRes{
+			Orgin:  response.Request.URL.String(),
 			Loc:    "js",
 			Path:   "",
 			JsPath: paths,
@@ -141,8 +141,7 @@ func (crawler *Crawler) init() {
 		fmt.Println(response.Request.URL.String())
 		for _, relPath := range paths {
 			// JS Regex Result
-			outputFormat = fmt.Sprintf("- %s", relPath)
-			fmt.Println(outputFormat)
+			//outputFormat = fmt.Sprintf("- %s", relPath)
 
 			rebuildURL := ""
 			if !currentPathURLerr {
@@ -163,7 +162,6 @@ func (crawler *Crawler) init() {
 			}
 
 			// Try to generate URLs with the site where Javascript file host in (must be in main or sub domain)
-			//和上面重复了，没有必要
 			//urlWithJSHostIn := FixUrl(crawler.site, relPath)
 			//if urlWithJSHostIn != "" {
 			//	fileExt := utils.GetExtType(urlWithJSHostIn)
@@ -192,10 +190,6 @@ func (crawler *Crawler) init() {
 		}
 	})
 
-	crawler.NormalCollector.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL)
-	})
-
 	//监听normal
 	crawler.NormalCollector.OnHTML("[href]", func(e *colly.HTMLElement) {
 		urlString := e.Request.AbsoluteURL(e.Attr("href"))
@@ -206,6 +200,7 @@ func (crawler *Crawler) init() {
 
 		res := SpiderRes{
 			Loc:    "orgin",
+			Orgin:  crawler.site.String(),
 			Path:   urlString,
 			JsPath: nil,
 		}
@@ -216,6 +211,7 @@ func (crawler *Crawler) init() {
 		formUrl := e.Request.URL.String()
 		res := SpiderRes{
 			Loc:    "orgin",
+			Orgin:  crawler.site.String(),
 			Path:   formUrl,
 			JsPath: nil,
 		}

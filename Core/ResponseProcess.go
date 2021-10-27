@@ -7,14 +7,16 @@ import (
 	"github.com/fatih/color"
 	"go.uber.org/zap"
 	"sync"
+	"time"
 )
 
 type ResponsePara struct {
-	ctx     context.Context
-	repchan chan *Resp
-	wgs     *sync.WaitGroup
-	wdmap   map[string]*WildCard
-	mod     string
+	ctx      context.Context
+	repchan  chan *Resp
+	wgs      *sync.WaitGroup
+	wdmap    map[string]*WildCard
+	mod      string
+	jsfinder bool
 }
 
 type Resp struct {
@@ -29,7 +31,7 @@ type handledpath struct {
 }
 
 func AccessResponseWork(WorkPara *ResponsePara) {
-	//defer WorkPara.wgs.Done()
+	defer WorkPara.wgs.Done()
 	//result,err := custom.RunRequest(ctx, Url)
 
 	//TODO channel超时
@@ -38,6 +40,8 @@ func AccessResponseWork(WorkPara *ResponsePara) {
 		case <-WorkPara.ctx.Done():
 			return
 
+		case <-time.After(3 * time.Second):
+			return
 		case resp, ok := <-WorkPara.repchan:
 			if !ok {
 				return
@@ -74,6 +78,10 @@ func AccessResponseWork(WorkPara *ResponsePara) {
 						zap.Int("Code", resp.resp.StatusCode),
 						zap.Int64("Length", resp.resp.Length))
 					ResChan <- resp.path
+				}
+
+				if WorkPara.jsfinder && WorkPara.mod == "default" {
+					SpiderWaitChan <- resp.finpath.target + resp.finpath.PreHandleWord
 				}
 
 			}

@@ -14,6 +14,7 @@ type Options struct {
 	Cookie     string
 	Method     string
 	Mod        string
+	JsFinder   bool
 	Transport  *http.Transport
 }
 

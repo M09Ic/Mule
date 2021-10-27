@@ -164,7 +164,9 @@ func GenWildCardMap(ctx context.Context, client *CustomClient, random string, ta
 				Testpath = strings.Replace(ex, "$$", random, 1)
 				wd, err = GenWd(ctx, client, target, Testpath)
 				if err != nil {
-					return nil, fmt.Errorf("When you test %s, there is something error\n", ex)
+					//TODO 增加一个访问的黑名单，如果ban掉的目录就直接不访问
+					continue
+					//return nil, fmt.Errorf("When you test %s, there is something error\n", ex)
 				}
 				in := strings.Index(ex, "$$")
 				key := ex[in+2:]

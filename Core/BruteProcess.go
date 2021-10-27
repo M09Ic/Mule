@@ -19,6 +19,7 @@ var Countchan = make(chan struct{}, 10000)
 var CurCancel context.CancelFunc
 var CurContext context.Context
 var CheckChan = make(chan struct{}, 10000)
+var SpiderWaitChan = make(chan string, 100)
 var RepChan = make(chan *Resp, 1000)
 var Block int
 
@@ -65,6 +66,27 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	taskroot, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	var SpWgs sync.WaitGroup
+	if Opts.JsFinder {
+		go SpiderResHandle(SpiderChan)
+		SpiderScanPool, _ := ants.NewPoolWithFunc(10, func(Para interface{}) {
+			defer SpWgs.Done()
+			CuPara := Para.(string)
+			newcolly := NewCollyClient(&Opts)
+			newcolly.Start(CuPara)
+			newcolly.NormalCollector.Wait()
+			newcolly.LinkFinderCollector.Wait()
+		})
+
+		go func(Spchan chan string) {
+			for i := range Spchan {
+				SpWgs.Add(1)
+				_ = SpiderScanPool.Invoke(i)
+			}
+		}(SpiderWaitChan)
+
+	}
 
 	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot)
 
@@ -129,11 +151,12 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		}
 
 		RespPre := ResponsePara{
-			ctx:     CurContext,
-			repchan: RepChan,
-			wgs:     &RepWgs,
-			wdmap:   wildcardmap,
-			mod:     Opts.Mod,
+			ctx:      CurContext,
+			repchan:  RepChan,
+			wgs:      &RepWgs,
+			wdmap:    wildcardmap,
+			mod:      Opts.Mod,
+			jsfinder: Opts.JsFinder,
 		}
 
 		//开启结果协程
@@ -141,12 +164,17 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 		for i := 0; i < Opts.Thread; i++ {
 			ReqWgs.Add(1)
+			RepWgs.Add(1)
 			_ = RepScanPool.Invoke(RespPre)
 			_ = ReqScanPool.Invoke(PrePara)
 		}
 
 		//等待结束
 		ReqWgs.Wait()
+		RepWgs.Wait()
+		fmt.Println("扫描结束，请等待linkfinder运行结束")
+		time.Sleep(500 * time.Millisecond)
+		SpWgs.Wait()
 
 		//elapsed := time.Since(t1)
 		//fmt.Println("App elapsed: ", elapsed)
@@ -155,8 +183,8 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		//for _, i := range ResSlice{
 		//	fmt.Println(i.Path)
 		//}
-		time.Sleep(500 * time.Millisecond)
 
+		OutputLinkFinder()
 		UpdateDict(Opts.Dictionary, Opts.DirRoot)
 		CurCancel()
 	}
