@@ -51,15 +51,15 @@ func init() {
 	BruteCmd.Flags().StringP("dic", "d", "", "dictionary to brute")
 	BruteCmd.Flags().StringP("mod", "m", "default", "brute mod select")
 	BruteCmd.Flags().StringP("flag", "f", "", "use default dictionary in /Data")
-	BruteCmd.Flags().StringP("output", "o", "./res.log", "output res default in ./res.log")
+	BruteCmd.Flags().StringP("output", "o", "", "output res default in ./res.log")
 	BruteCmd.Flags().StringArrayP("Headers", "H", []string{}, "Request's Headers")
 	BruteCmd.Flags().StringP("Cookie", "C", "", "Request's Cookie")
 	BruteCmd.Flags().IntP("timeout", "", 5, "request's timeout")
 	BruteCmd.Flags().IntP("Thread", "t", 30, "the size of thread pool")
 	BruteCmd.Flags().IntP("block", "b", 10, "the number of auto stop brute")
 	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
-	BruteCmd.Flags().BoolP("js", "j", true, "finder js from page")
-
+	BruteCmd.Flags().BoolP("js", "j", false, "finder js from page")
+	BruteCmd.Flags().StringP("format", "", "raw", "the format of output")
 }
 
 func StartBrute(cmd *cobra.Command, args []string) error {
@@ -121,16 +121,18 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for urls: %w", err)
 	}
 
+	var fileprex string
 	if FTarget == "" && STarget == "" {
 		return nil, fmt.Errorf("Please input the target")
 	} else if FTarget != "" && STarget == "" {
 		FTargets, err = utils.ReadTarget(FTarget)
-
+		fileprex = FTarget
 		if err != nil {
 			return nil, fmt.Errorf("please check target file")
 		}
 	} else if FTarget == "" && STarget != "" {
 		FTargets = append(FTargets, STarget)
+		fileprex = STarget
 	} else {
 		return nil, fmt.Errorf("only input u or U,cannot use in the same time")
 	}
@@ -232,6 +234,11 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
+	}
+	if LogFile == "" {
+		fileprex = strings.Replace(fileprex, "://", "_", -1)
+		fileprex = strings.Replace(fileprex, "/", "_", -1)
+		LogFile = "./log/" + fileprex + "_" + defaultstring + ".log"
 	}
 
 	opts.JsFinder, err = cmd.Flags().GetBool("js")

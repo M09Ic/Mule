@@ -28,7 +28,10 @@ func InitLogger(logfile string) {
 	//
 	//fmt.Println("Start init logger")
 
-	writeSyncer, _ := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
+	writeSyncer, err := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
+	if err != nil {
+		panic("create log_file failed")
+	}
 
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig = zapcore.EncoderConfig{
@@ -41,12 +44,10 @@ func InitLogger(logfile string) {
 	Logger = zap.New(core)
 }
 
-func ResHandle(reschan chan utils.PathDict) []utils.PathDict {
+func ResHandle(reschan chan utils.PathDict) {
 	for res := range reschan {
 		ResSlice = append(ResSlice, res)
 	}
-
-	return ResSlice
 
 }
 

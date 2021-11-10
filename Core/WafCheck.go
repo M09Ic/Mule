@@ -3,6 +3,7 @@ package Core
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 )
 
 var CancelFlag int
@@ -73,6 +74,10 @@ func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *W
 				}
 
 				if CancelFlag > Block {
+					Logger.Info("failed",
+						zap.String("Path", ""),
+						zap.Int("Code", 0),
+						zap.Int64("Length", 0))
 					fmt.Printf("\nbad luck, you have been blocked %s, there is a waf or check your network\n", target)
 					ctxcancel()
 				}

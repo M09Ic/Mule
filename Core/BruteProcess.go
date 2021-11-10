@@ -172,9 +172,11 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		//等待结束
 		ReqWgs.Wait()
 		RepWgs.Wait()
-		fmt.Println("扫描结束，请等待linkfinder运行结束")
-		time.Sleep(500 * time.Millisecond)
-		SpWgs.Wait()
+		if Opts.JsFinder {
+			fmt.Println("扫描结束，请等待linkfinder运行结束")
+			time.Sleep(500 * time.Millisecond)
+			SpWgs.Wait()
+		}
 
 		//elapsed := time.Since(t1)
 		//fmt.Println("App elapsed: ", elapsed)
