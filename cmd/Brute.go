@@ -53,6 +53,7 @@ func init() {
 	BruteCmd.Flags().StringP("flag", "f", "", "use default dictionary in /Data")
 	BruteCmd.Flags().StringP("output", "o", "", "output res default in ./res.log")
 	BruteCmd.Flags().StringArrayP("Headers", "H", []string{}, "Request's Headers")
+	BruteCmd.Flags().StringP("range", "r", "0", "range of dict")
 	BruteCmd.Flags().StringP("Cookie", "C", "", "Request's Cookie")
 	BruteCmd.Flags().IntP("timeout", "", 5, "request's timeout")
 	BruteCmd.Flags().IntP("Thread", "t", 30, "the size of thread pool")
@@ -60,15 +61,12 @@ func init() {
 	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
 	BruteCmd.Flags().BoolP("js", "j", false, "finder js from page")
 	BruteCmd.Flags().StringP("format", "", "raw", "the format of output")
+	BruteCmd.Flags().BoolP("nolog", "", false, "don't produce log")
 }
 
 func StartBrute(cmd *cobra.Command, args []string) error {
 
 	//start := time.Now() // 获取当前时间
-
-	fmt.Println(Core.Mule)
-
-	fmt.Println(Core.Version)
 
 	opts, err := ParseInput(cmd)
 
@@ -107,7 +105,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	}
 
 	opts.DirRoot = DefaultDic
-
+	opts.Range = "0"
 	// 预处理url
 	STarget, err := cmd.Flags().GetString("url")
 
@@ -161,6 +159,11 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for dictionary: %w", err)
 	}
 
+	opts.Range, err = cmd.Flags().GetString("range")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for dictionary: %w", err)
+	}
 	defslice := utils.GetDefaultList(defaultstring)
 
 	opts.Dictionary = append(opts.Dictionary, defslice...)
@@ -202,6 +205,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 
 	Core.BlackList, err = cmd.Flags().GetIntSlice("blacklist")
 
+	Core.BlackList = append(Core.BlackList, 400)
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for blacklist: %w", err)
 	}
@@ -241,6 +245,13 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		LogFile = "./log/" + fileprex + "_" + defaultstring + ".log"
 	}
 
+	opts.Nolog, err = cmd.Flags().GetBool("nolog")
+
+	utils.Nolog = opts.Nolog
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
+	}
+
 	opts.JsFinder, err = cmd.Flags().GetBool("js")
 
 	if err != nil {
@@ -256,7 +267,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		//DisableKeepAlives: true,
 	}
 
-	Core.InitLogger(LogFile)
+	Core.InitLogger(LogFile, opts.Nolog)
 
 	return &opts, nil
 

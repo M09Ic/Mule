@@ -10,19 +10,21 @@ type Options struct {
 	Headers    []HTTPHeader
 	Dictionary []string
 	DirRoot    string
+	Range      string
 	Target     []string
 	Cookie     string
 	Method     string
 	Mod        string
 	JsFinder   bool
+	Nolog      bool
 	Transport  *http.Transport
 }
 
 type ReqRes struct {
-	StatusCode int
+	StatusCode int `json:"StatusCode"`
 	Header     http.Header
 	Body       []byte
-	Length     int64
+	Length     int64 `json:"Length"`
 }
 
 type WildCard struct {

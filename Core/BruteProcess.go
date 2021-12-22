@@ -3,6 +3,7 @@ package Core
 import (
 	"Mule/utils"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/panjf2000/ants"
 	"github.com/projectdiscovery/cdncheck"
@@ -88,8 +89,9 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	}
 
-	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot)
+	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range)
 
+	utils.Configloader()
 	for _, curtarget := range Opts.Target {
 		CheckFlag = 0
 
@@ -126,7 +128,9 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		// waf检测
 		go TimingCheck(CurContext, client, curtarget, wildcardmap["default"], CheckChan, CurCancel)
 		//进度条
-		go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
+		if Opts.Nolog {
+			go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
+		}
 
 		//  开启线程池
 		ReqScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
@@ -186,8 +190,15 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		//	fmt.Println(i.Path)
 		//}
 
-		OutputLinkFinder()
-		UpdateDict(Opts.Dictionary, Opts.DirRoot)
+		if Opts.JsFinder {
+			OutputLinkFinder()
+		}
+		if !Opts.Nolog {
+			JsonRes, _ := json.Marshal(ResSlice)
+			fmt.Println(string(JsonRes))
+		} else {
+			UpdateDict(Opts.Dictionary, Opts.DirRoot)
+		}
 		CurCancel()
 	}
 
@@ -228,7 +239,10 @@ func AccessWork(WorkPara *PoolPara) {
 				return
 			}
 
-			Countchan <- struct{}{}
+			if utils.Nolog {
+				Countchan <- struct{}{}
+			}
+
 			CheckChan <- struct{}{}
 
 			path := word.Path
@@ -236,6 +250,10 @@ func AccessWork(WorkPara *PoolPara) {
 			PreHandleWord := strings.TrimSpace(path)
 			if strings.HasPrefix(PreHandleWord, "#") || len(PreHandleWord) == 0 {
 				continue
+			}
+
+			if !strings.HasPrefix(PreHandleWord, "/") {
+				PreHandleWord = "/" + PreHandleWord
 			}
 
 			add := Additional{
@@ -254,7 +272,7 @@ func AccessWork(WorkPara *PoolPara) {
 				resp: result,
 				finpath: handledpath{
 					target:        WorkPara.target,
-					PreHandleWord: PreHandleWord,
+					preHandleWord: PreHandleWord,
 				},
 				path: word,
 			}

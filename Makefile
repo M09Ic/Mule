@@ -1,9 +1,11 @@
 # Binary name
 BINARY= Mule
-VERSION = 0.7.4beta
+VERSION = 1.0.0beta
 # Builds the project
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./main.go
+build_linux:
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ./bin/Mule-linux64-${VERSION} ./main.go
 # Installs our project: copies binaries
 install:
 		go install

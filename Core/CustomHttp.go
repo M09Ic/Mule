@@ -57,7 +57,7 @@ func (custom *CustomClient) RunRequest(ctx context.Context, Url string, Para Add
 			return nil, err
 		}
 		// 输出错误,暂时看下来context deadline的页面都是无意义的页面,如果以后出现再解决
-		//Logger.Error("RunRequestErr", zap.String("Error", err.Error()))
+		//FileLogger.Error("RunRequestErr", zap.String("Error", err.Error()))
 		return nil, err
 	}
 

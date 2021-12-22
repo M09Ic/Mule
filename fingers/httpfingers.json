@@ -1,0 +1,2195 @@
+[
+  {
+    "name": "Portainer(Docker管理)",
+    "protocol": "http",
+    "level": 0,
+    "default_port": [
+      "9000"
+    ],
+    "regexps": {
+      "body": [
+        "portainer.updatePassword",
+        "portainer.init.admin"
+      ]
+    }
+  },
+  {
+    "name": "Gogs简易Git服务",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "i_like_gog",
+        "i_like_gitea"
+      ]
+    }
+  },
+  {
+    "name": "wordpress",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "wp-content"
+      ]
+    }
+  },
+  {
+    "name": "zzzcms",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "zzzcms"
+      ]
+    }
+  },
+  {
+    "name": "thinkcmf",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "thinkcmf"
+      ]
+    }
+  },
+  {
+    "name": "宝塔面板",
+    "protocol": "http",
+    "default_port": [
+      "8888"
+    ],
+    "level": 0,
+    "regexps": {
+      "body": [
+        "app.bt.cn/static/app.png",
+        "安全入口校验失败"
+      ]
+    }
+  },
+  {
+    "name": "宝塔",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "恭喜，站点创建成功"
+      ]
+    }
+  },
+  {
+    "name": "Nexus",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Nexus Repository Manager"
+      ],
+      "header": [
+        "NX-ANTI-CSRF-TOKEN"
+      ]
+    }
+  },
+  {
+    "name": "Harbor",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "<title>Harbor</title>"
+      ],
+      "header": [
+        "harbor-lang"
+      ]
+    }
+  },
+  {
+    "name": "禅道oa",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/theme/default/images/main/zt-logo.png",
+        "/zentao/theme/zui/css/min.css"
+      ],
+      "header": [
+        "zentaosid"
+      ]
+    }
+  },
+  {
+    "name": "微擎",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/index.php?c=user&a=find-password"
+      ]
+    }
+  },
+  {
+    "name": "协众OA",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Powered by 协众OA"
+      ],
+      "header": [
+        "CNOAOASESSID"
+      ]
+    }
+  },
+  {
+    "name": "TRS(托尔斯)",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "dreamer-cms"
+      ]
+    }
+  },
+  {
+    "name": "xxl-job",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "分布式任务调度平台XXL-JOB"
+      ]
+    }
+  },
+  {
+    "name": "atmail-WebMail",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "atmail6"
+      ],
+      "body": [
+        "/index.php/mail/auth/processlogin"
+      ]
+    }
+  },
+  {
+    "name": "weblogic",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/login_WebLogic_branding.png",
+        "Welcome to Weblogic Application Server",
+        "<i>Hypertext Transfer Protocol -- HTTP/1.1</i>"
+      ],
+      "header": [
+        "WebLogic"
+      ]
+    }
+  },
+  {
+    "name": "weblogic-console",
+    "protocol": "http",
+    "level": 1,
+    "send_data": "/console/login/LoginForm.jsp",
+    "vuln": "weblogic_console_leak",
+    "regexps": {
+      "vuln": [
+        "WebLogic"
+      ]
+    }
+  },
+  {
+    "name": "WebSphere",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "SRVE0255E",
+        "ibm.ws.webcontainer.servlet",
+        "IBM WebSphere Application Server"
+      ]
+    }
+  },
+  {
+    "name": "安策绩效管理系统",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "安策绩效信息科技"
+      ]
+    }
+  },
+  {
+    "name": "78OA",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "78oa.com"
+      ]
+    }
+  },
+  {
+    "name": "致远OA",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/seeyon/USER-DATA/IMAGES/LOGIN/login.gif",
+        "/seeyon/common/"
+      ]
+    }
+  },
+  {
+    "name": "致远M3-Server",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "<title>M3 Server"
+      ]
+    }
+  },
+  {
+    "name": "用友 NC",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/nc/servlet/nc.ui.iufo.login.Index"
+      ]
+    }
+  },
+  {
+    "name": "用友 GRP-u8",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/R9iPortal/js/jquery.js"
+      ]
+    }
+  },
+  {
+    "name": "用友 GRP-R9i",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "R9iPortal/index.jsp"
+      ]
+    }
+  },
+  {
+    "name": "用友-UFIDA",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/System/Login/Login.asp?"
+      ]
+    }
+  },
+  {
+    "name": "用友 U8-Cloud ",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "uclient.yonyou.com/api/uclient/public/download"
+      ]
+    }
+  },
+  {
+    "name": "用友-RMIS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "css/commonlogincomp.min.css"
+      ]
+    }
+  },
+  {
+    "name": "用友-时空企业信息管理门户",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "mkbh = getCookie("
+      ]
+    }
+  },
+  {
+    "name": "用友-智能工厂_智能网关",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/modules/core/client/views/header.client.view.html"
+      ]
+    }
+  },
+  {
+    "name": "蓝凌oa_EKP",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/ekp/login.jsp",
+        "ekpwx-v.oa.camc",
+        "resource/anonym.jsp",
+        "/sys/ui/js/LUI.js"
+      ]
+    }
+  },
+  {
+    "name": "红帆oa",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "红帆ioffice"
+      ]
+    }
+  },
+  {
+    "name": "协达oa",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "img.style.height=(bodyH-84-100)"
+      ]
+    }
+  },
+  {
+    "name": "中腾oa",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "zt_webframe"
+      ]
+    }
+  },
+  {
+    "name": "华天动力oa",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+
+        "/htoa/css/CN/BLUE/login.css"
+      ]
+    }
+  },
+  {
+    "name": "畅捷通",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "畅捷通 T+",
+        "tp.control.css.ashx"
+      ]
+    }
+  },
+  {
+    "name": "discuz",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Discuz"
+      ]
+    }
+  },
+  {
+    "name": "Typecho",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Typecho</a>"
+      ]
+    }
+  },
+  {
+    "name": "金蝶EAS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "easSessionId"
+      ]
+    }
+  },
+  {
+    "name": "金蝶云星空",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Kingdee.BOS.XPF.App.xap"
+      ]
+    }
+  },
+  {
+    "name": "phpMyAdmin",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "pma_lang",
+        "phpMyAdmin"
+      ],
+      "body": [
+        "/themes/pmahomme/img/logo_right.png"
+      ]
+    }
+  },
+  {
+    "name": "H3C-AM8000",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "AM8000"
+      ]
+    }
+  },
+  {
+    "name": "360企业版",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "360EntWebAdminMD5Secret"
+      ]
+    }
+  },
+  {
+    "name": "H3C公司产品",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "<title>Web managerment Home",
+        ".h3c.com",
+        "service@h3c.com"
+      ]
+    }
+  },
+  {
+    "name": "H3C网络设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "libs/MulPlatAPI.js"
+      ]
+    }
+  },
+  {
+    "name": "H3C安全产品管理平台",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/wnm/ssl/web/frame/login.html"
+      ]
+    }
+  },
+  {
+    "name": "H3C ICG 1000",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ICG 1000系统管理"
+      ]
+    }
+  },
+  {
+    "name": "Citrix-Metaframe",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "window.location=\"/Citrix/MetaFrame"
+      ]
+    }
+  },
+  {
+  "name": "Citrix/Netscaler VPN",
+  "protocol": "http",
+  "level": 0,
+  "regexps": {
+    "body": [
+      "/vpn/resources.js"
+    ]
+  }
+},
+  {
+    "name": "H3C ER5100",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER5100系统管理"
+      ]
+    }
+  },
+  {
+    "name": "CISCO_EPC3925",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Docsis_system"
+      ]
+    }
+  },
+  {
+    "name": "CISCO ASR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "CISCO ASR"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER3200",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER3200系统管理"
+      ]
+    }
+  },
+  {
+    "name": "万户ezOFFICE",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "LocLan"
+      ]
+    }
+  },
+  {
+    "name": "万户网络",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "css/css_whir.css"
+      ]
+    }
+  },
+  {
+    "name": "Spark_Master",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Spark Master at"
+      ]
+    }
+  },
+  {
+    "name": "huawei_SRG2220",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "HUAWEI SRG2220"
+      ]
+    }
+  },
+  {
+    "name": "huawei_router",
+    "protocol": "http",
+    "level": 0,
+    "default_port": [
+      "8443"
+    ],
+    "regexps": {
+      "body": [
+        "UI_component/css/xtheme-black"
+      ]
+    }
+  },
+  {
+    "name": "蓝凌EIS智慧协同平台",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/scripts/jquery.landray.common.js"
+      ]
+    }
+  },
+  {
+    "name": "深信服ssl-vpn",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "login_psw.csp"
+      ]
+    }
+  },
+  {
+    "name": "深信服EDR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "终端检测响应平台",
+        "featureDetect.js"
+      ]
+    }
+  },
+  {
+    "name": "华为 NetOpen",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/netopen/theme/css/inFrame.css"
+      ]
+    }
+  },
+  {
+    "name": "Citrix-Web-PN-Server",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Citrix Web PN Server"
+      ]
+    }
+  },
+  {
+    "name": "juniper_vpn",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "welcome.cgi?p=logo",
+        "/images/logo_juniper_reversed.gif"
+      ]
+    }
+  },
+  {
+    "name": "360主机卫士",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "zhuji.360.cn"
+      ]
+    }
+  },
+  {
+    "name": "Nagios",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "Nagios Access"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER8300",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER8300系统管理"
+      ]
+    }
+  },
+  {
+    "name": "Citrix-Access-Gateway",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Citrix Access Gateway"
+      ]
+    }
+  },
+  {
+    "name": "华为 MCU",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "McuR5-min.js"
+      ]
+    }
+  },
+  {
+    "name": "TP-LINK Wireless WDR3600",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "TP-LINK Wireless WDR3600"
+      ]
+    }
+  },
+  {
+    "name": "泛微OA E-cology",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "ecology_JSessionid"
+      ],
+      "body": [
+        "/wui/theme/ecology",
+        "/cloudstore/resource/pc/com"
+      ]
+    }
+  },
+  {
+    "name": "泛微 E-Mobile",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Weaver E-Mobile"
+      ]
+    }
+  },
+  {
+    "name": "泛微 E-Office",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/lang/cn/javascript.lang.js"
+      ]
+    }
+  },
+  {
+    "name": "泛微云桥 E-Bridge",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/main/assets/images/favicon.ico"
+      ]
+    }
+  },
+  {
+    "name": "TP-LINK Wireless WDR3600",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "TP-LINK Wireless WDR3600"
+      ]
+    }
+  },
+  {
+    "name": "华为_HUAWEI_ASG2050",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "HUAWEI ASG2050"
+      ]
+    }
+  },
+  {
+    "name": "360网站卫士",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "360wzb"
+      ]
+    }
+  },
+  {
+    "name": "Citrix-XenServer",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Citrix Systems, Inc. XenServer"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER2100V2",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER2100V2系统管理"
+      ]
+    }
+  },
+  {
+    "name": "zabbix",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "zbx_sessionid"
+      ],
+      "body": [
+        "images/general/zabbix.ico",
+        "Zabbix SIA"
+      ]
+    }
+  },
+  {
+    "name": "CISCO_VPN",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "webvpn"
+      ]
+    }
+  },
+  {
+    "name": "360站长平台",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "360-site-verification"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER3108GW",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER3108GW系统管理"
+      ]
+    }
+  },
+  {
+    "name": "o2security_vpn",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "client_param=install_active"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER3260G2",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER3260G2系统管理"
+      ]
+    }
+  },
+  {
+    "name": "H3C ICG1000",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ICG1000系统管理"
+      ]
+    }
+  },
+  {
+    "name": "CISCO-CX20",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "CISCO-CX20"
+      ]
+    }
+  },
+  {
+    "name": "CISCO-Router",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Cisco Systems Login"
+      ]
+    }
+  },
+  {
+    "name": "synology-router",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "synologyrouter"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER5200",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER5200系统管理"
+      ]
+    }
+  },
+  {
+    "name": "linksys-vpn-bragap14-parintins",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "linksys-vpn-bragap14-parintins"
+      ]
+    }
+  },
+  {
+    "name": "360网站卫士常用前端公共库",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "libs.useso.com"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER3100",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER3100系统管理"
+      ]
+    }
+  },
+  {
+    "name": "H3C-SecBlade-FireWall",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "js/MulPlatAPI.js"
+      ]
+    }
+  },
+  {
+    "name": "360webfacil_360WebManager",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "publico/template/"
+      ]
+    }
+  },
+  {
+    "name": "Citrix_Netscaler",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ns_af"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER6300G2",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER6300G2系统管理"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER3260",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER3260系统管理"
+      ]
+    }
+  },
+  {
+    "name": "华为_HUAWEI_SRG3250",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "HUAWEI SRG3250"
+      ]
+    }
+  },
+  {
+    "name": "exchange",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/owa/auth.owa"
+      ]
+    }
+  },
+  {
+    "name": "Spark_Worker",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Spark Worker at"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER3108G",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER3108G系统管理"
+      ]
+    }
+  },
+  {
+    "name": "深信服防火墙类产品",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "SANGFOR FW"
+      ]
+    }
+  },
+  {
+    "name": "Citrix-ConfProxy",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "confproxy"
+      ]
+    }
+  },
+  {
+    "name": "360网站安全检测",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "webscan.360.cn/status/pai/hash"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER5200G2",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER5200G2系统管理"
+      ]
+    }
+  },
+  {
+    "name": "华为（HUAWEI）安全设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "sweb-lib/resource/"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER6300",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER6300系统管理"
+      ]
+    }
+  },
+  {
+    "name": "华为_HUAWEI_ASG2100",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "HUAWEI ASG2100"
+      ]
+    }
+  },
+  {
+    "name": "TP-Link 3600 DD-WRT",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "TP-Link 3600 DD-WRT"
+      ]
+    }
+  },
+  {
+    "name": "NETGEAR WNDR3600",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "NETGEAR WNDR3600"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER2100",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER2100系统管理"
+      ]
+    }
+  },
+  {
+    "name": "绿盟下一代防火墙",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "NSFOCUS NF"
+      ]
+    }
+  },
+  {
+    "name": "jira",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "jira.webresources"
+      ]
+    }
+  },
+  {
+    "name": "金和协同管理平台",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "金和协同管理平台",
+        "JHSoft.UI.Lib"
+      ]
+    }
+  },
+  {
+    "name": "Citrix-NetScaler",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "NS-CACHE"
+      ]
+    }
+  },
+  {
+    "name": "linksys-vpn",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "linksys-vpn"
+      ]
+    }
+  },
+  {
+    "name": "通达OA",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/static/images/tongda.ico"
+      ]
+    }
+  },
+  {
+    "name": "华为（HUAWEI）Secoway设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Secoway"
+      ]
+    }
+  },
+  {
+    "name": "华为_HUAWEI_SRG1220",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "HUAWEI SRG1220"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER2100n",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER2100n系统管理"
+      ]
+    }
+  },
+  {
+    "name": "H3C ER8300G2",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ER8300G2系统管理"
+      ]
+    }
+  },
+  {
+    "name": "金蝶政务GSiS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/kdgs/script/kdgs.js"
+      ]
+    }
+  },
+  {
+    "name": "Jboss",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Welcome to JBoss",
+        "jboss.css"
+      ],
+      "header": [
+        "JBoss"
+      ]
+    }
+  },
+  {
+    "name": "泛微E-mobile",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Weaver E-mobile",
+        "weaver,e-mobile"
+      ]
+    }
+  },
+  {
+    "name": "齐治堡垒机",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "logo-icon-ico72.png",
+        "image/top_logo.ico"
+      ]
+    }
+  },
+  {
+    "name": "ThinkPHP",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "ThinkPHP"
+      ],
+      "body": [
+        "/Public/static/js/"
+      ]
+    }
+  },
+  {
+    "name": "weaver-ebridge",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "e-Bridge,http://wx.weaver"
+      ]
+    }
+  },
+  {
+    "name": "Laravel",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "laravel_session"
+      ]
+    }
+  },
+  {
+    "name": "DWR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "dwr/engine.js"
+      ]
+    }
+  },
+  {
+    "name": "swagger_ui",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/swagger"
+      ]
+    }
+  },
+  {
+    "name": "大汉版通发布系统",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/module/jslib/urite",
+        "大汉版通发布系统",
+        "大汉网络"
+      ]
+    }
+  },
+  {
+    "name": "深信服上网行为管理系统",
+    "protocol": "http",
+    "level": 999,
+    "send_data": "/login/img/product_logo.png",
+    "regexps": {
+      "md5": [
+        "d8de64b0ca4281380295aa23500267ca"
+      ]
+    }
+  },
+  {
+    "name": "大汉Web",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "hanweb.css"
+      ]
+    }
+  },
+  {
+    "name": "dreamCMS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "dreamer-cms"
+      ]
+    }
+  },
+  {
+    "name": "TongWeb",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "TongWeb Serve"
+      ]
+    }
+  },
+  {
+    "name": "奇安信VPN/网康",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "new_style/deepblue.css",
+        "admin/js/json2.js"
+      ]
+    }
+  },
+  {
+    "name": "IIS",
+    "protocol": "http",
+    "level": 0,
+    "vuln": "Directory traversal",
+    "regexps": {
+      "body": [
+        "Bad Request (Invalid Hostname)"
+      ],
+      "vuln": [
+        "- /</title>"
+      ]
+    }
+  },
+  {
+    "name": "JeeSite",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "jeesite.min.css"
+      ]
+    }
+  },
+  {
+    "name": "JeeCMS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/r/cms"
+      ]
+    }
+  },
+  {
+    "name": "深信服设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "at sangforsvpn@sangfor.com.cn"
+      ],
+      "header": [
+        "SinforHttpd"
+      ]
+    }
+  },
+  {
+    "name": "Vmware Zimbra",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Zimbra Collaboration",
+        "/zimbra/css/common"
+      ]
+    }
+  },
+  {
+    "name": "Vmware ESXi",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ID_EESX_Welcome"
+      ]
+    }
+  },
+  {
+    "name": "VMware vFabric",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "VMware vFabric"
+      ]
+    }
+  },
+  {
+    "name": "Vmware Center",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ID_VC_Welcome"
+      ]
+    }
+  },
+  {
+    "name": "VisualSVN",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "VisualSVN Server",
+        "0;URL=svn/"
+      ]
+    }
+  },
+  {
+  "name": "锐捷EWeb网管系统",
+  "protocol": "http",
+  "level": 0,
+  "regexps": {
+    "body": [
+      "pub/ui/rui-min.css",
+      "NBR路由器"
+    ]
+    }
+  },
+  {
+    "name": "springboot",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Whitelabel Error Page",
+        "No message available",
+        "{\"timestamp\":"
+      ]
+    }
+  },
+  {
+    "name": "frp",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Faithfully yours, frp"
+      ]
+    }
+  },
+  {
+    "name": "tomcat",
+    "protocol": "http",
+    "level": 0,
+    "vuln": "Directory traversal",
+    "regexps": {
+      "vuln": [
+        "Directory Listing For"
+      ],
+      "regexp": [
+        "<h3>Apache Tomcat/(.*)</h3>",
+        "<title>Apache Tomcat/(.*)</title>"
+      ],
+      "header": [
+        "Apache-Coyote"
+      ]
+    }
+  },
+  {
+    "name": "jumpserver",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/static/img/facio.jico",
+        "JumpServer</title>"
+      ]
+    }
+  },
+  {
+    "name": "Apache",
+    "protocol": "http",
+    "vuln": "Directory traversal",
+    "level": 0,
+    "regexps": {
+      "vuln": [
+        "Index of /"
+      ]
+    }
+  },
+  {
+    "name": "SWIFT",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "swift.generic"
+      ]
+    }
+  },
+  {
+    "name": "elasticsearch",
+    "protocol": "http",
+    "level": 0,
+    "default_port": [
+      "9200"
+    ],
+    "regexps": {
+      "body": [
+        "\"cluster_name\" : \"elasticsearch\""
+      ]
+    }
+  },
+  {
+    "name": "mongodb",
+    "protocol": "http",
+    "default_port": [
+      "27017"
+    ],
+    "level": 0,
+    "regexps": {
+      "body": [
+        "It looks like you are trying to access MongoDB over HTTP on the native driver port."
+      ]
+    }
+  },
+  {
+    "name": "hadoop",
+    "protocol": "http",
+    "default_port": [
+      "8088"
+    ],
+    "level": 0,
+    "vuln": "hadoop_yarn_unauthorized",
+    "regexps": {
+      "vuln": [
+        "<title>\n    All Applications"
+      ]
+    }
+  },
+  {
+    "name": "tomcat-manager",
+    "protocol": "http",
+    "level": 1,
+    "vuln": "tomcat_manager_leak",
+    "send_data": "/manager/html",
+    "regexps": {
+      "vuln": [
+        "You are not authorized to view this page"
+      ]
+    }
+  },
+  {
+    "name": "Grafana",
+    "protocol": "http",
+    "default_port": [
+      "3000"
+    ],
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Grafana</title>"
+      ]
+    }
+  },
+  {
+    "name": "金蝶中间件",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "-Error report"
+      ]
+    }
+  },
+  {
+    "name": "泽元站群管理系统ZCMS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "zcms_stat"
+      ]
+    }
+  },
+  {
+    "name": "民友minyooCMS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Minyoo",
+        "/tpl/8/images"
+      ]
+    }
+  },
+  {
+    "name": "中科汇联easysiteCMS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "huilan-jquery-ui"
+      ]
+    }
+  },
+  {
+    "name": "ajaxpro",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ajaxpro"
+      ]
+    }
+  },
+  {
+    "name": "金和OA",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Jhsoft.Web.login"
+      ]
+    }
+  },
+  {
+    "name": "jspxcms",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Powered by Jspxcms"
+      ]
+    }
+  },
+  {
+    "name": "LANMP集成环境",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "<title>LANMP"
+      ]
+    }
+  },
+  {
+    "name": "ueditor编辑器",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ueditor.all.js"
+      ]
+    }
+  },
+  {
+    "name": "亿邮邮件系统",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "eYou"
+      ]
+    }
+  },
+  {
+    "name": "FastAdmin",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "fastadmin"
+      ]
+    }
+  },
+  {
+    "name": "中腾OA",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "zt_webframe"
+      ]
+    }
+  },
+  {
+    "name": "帆软数据决策系统",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "ReportServer?op"
+      ]
+    }
+  },
+  {
+    "name": "安恒云堡垒机",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "DBAPPSecurity",
+        "安恒云堡垒机"
+      ]
+    }
+  },
+  {
+    "name": "中科网威堡垒机",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "zk.appname"
+      ]
+    }
+  },
+  {
+    "name": "VMware_vRealize",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "vRealize"
+      ]
+    }
+  },
+  {
+    "name": "APACHE_CAS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Central Authentication Service",
+        "execution="
+      ]
+    }
+  },
+  {
+    "name": "金山EDR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "终端安全系统Web控制台"
+      ]
+    }
+  },
+  {
+    "name": "金山timon云杀毒",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "iepngfix_tilebg.js"
+      ]
+    }
+  },
+  {
+    "name": "群晖NAS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "DiskStation"
+      ]
+    }
+  },
+  {
+    "name": "山石网科系统",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Hillstone"
+      ]
+    }
+  },
+  {
+    "name": "金山企业版(猎鹰)",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "kaasapp/views/css/assign.css"
+      ]
+    }
+  },
+  {
+    "name": "天玥堡垒机",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "kaasapp/views/css/assign.css"
+      ]
+    }
+  },
+  {
+    "name": "金山企业版",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "kaasapp/views/css/assign.css"
+      ]
+    }
+  },
+  {
+    "name": "启明星辰设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "北京启明星辰信息安全技术有限公司",
+        "venustech"
+      ]
+    }
+  },
+  {
+    "name": "北信源EDR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "北信源网络防病毒系统"
+      ]
+    }
+  },
+  {
+    "name": "联软EDR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "Resource/views/images/common/logo2.png",
+        "联软IT安全运维管理系统"
+      ]
+    }
+  },
+  {
+    "name": "奇安信新天擎EDR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "新天擎",
+        "/res/css/tools/index.css"
+      ]
+    }
+  },
+  {
+    "name": "奇安信/360天擎EDR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "360天擎终端安全管理系统"
+      ]
+    }
+  },
+  {
+    "name": "天融信EDR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "天融信终端威胁防御系统"
+      ]
+    }
+  },
+  {
+    "name": "通软EDR",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/default/uninstall.html",
+        "/Gsc/"
+      ]
+    }
+  },
+  {
+    "name": "smartBI",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "smartbi.gcf.gcfutil"
+      ]
+    }
+  },
+  {
+    "name": "思迪产品_thinkive",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "thinkiveJs.min.js"
+      ]
+    }
+  },
+  {
+    "name": "京伦CMS",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "jltech.cn"
+      ]
+    }
+  },
+  {
+    "name": "奇安信设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "header": [
+        "QiAnXin"
+      ]
+    }
+  },
+  {
+    "name": "普元EOS_console",
+    "protocol": "http",
+    "level": 1,
+    "vuln": "普元EOS_console_leak",
+    "send_data": "eosmgr/eos/EventDispatcher",
+    "regexps": {
+      "vuln": [
+        "EOS管理控制台"
+      ]
+    }
+  },
+  {
+    "name": "普元EOS",
+    "protocol": "http",
+    "level": 1,
+    "regexps": {
+      "body": [
+        "EOSOperator"
+      ],
+      "header": [
+        "eos_style_cookie"
+      ]
+    }
+  },
+  {
+    "name": "联软设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "leagsoft"
+      ]
+    }
+  },
+  {
+    "name": "奇安信网神/360天堤防火墙",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "resources/image/logo_header.png"
+      ]
+    }
+  },
+  {
+    "name": "网神3600防火墙",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "网神SecGate"
+      ]
+    }
+  },
+  {
+    "name": "网神VPN",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "admin/js/virtual_keyboard.js"
+      ]
+    }
+  },
+  {
+    "name": "网御星云设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "leadsec"
+      ]
+    }
+  },
+  {
+    "name": "网御星云VPN",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "/ssl/down/usbkey.exe",
+        "/js/leadsec.js"
+      ]
+    }
+  },
+  {
+    "name": "网康设备",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "netentsec"
+      ]
+    }
+  },
+  {
+    "name": "科信邮件系统_kxmail",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "www.kxmail.net"
+      ]
+    }
+  },
+  {
+    "name": "30盛安邮件系统",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "30san.all"
+      ]
+    }
+  },
+  {
+    "name": "acmailer",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "acmailer"
+      ]
+    }
+  },
+  {
+    "name": "安邮",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "suremail.cn"
+      ]
+    }
+  },
+  {
+    "name": "17mail易企邮",
+    "protocol": "http",
+    "level": 0,
+    "regexps": {
+      "body": [
+        "易企邮"
+      ]
+    }
+  }
+]

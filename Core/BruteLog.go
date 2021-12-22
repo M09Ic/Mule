@@ -4,6 +4,7 @@ import (
 	"Mule/utils"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -13,40 +14,47 @@ import (
 	"path/filepath"
 )
 
-var ResChan = make(chan utils.PathDict, 1000)
+var ResChan = make(chan *Resp, 1000)
 
-var ResSlice []utils.PathDict
+var ResSlice []Resp
 
-var Logger *zap.Logger
+var FileLogger *zap.Logger
 var ProBar *progressbar.ProgressBar
 var CheckFlag int
 
 //初始化log
 
-func InitLogger(logfile string) {
+func InitLogger(logfile string, nolog bool) {
 	//defer utils.TimeCost()()
 	//
 	//fmt.Println("Start init logger")
 
-	writeSyncer, err := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
-	if err != nil {
-		panic("create log_file failed")
+	if nolog {
+		fmt.Println(Mule)
+
+		fmt.Println(Version)
+
+		writeSyncer, err := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
+		if err != nil {
+			panic("create log_file failed")
+		}
+
+		//encoderConfig := zap.NewProductionEncoderConfig()
+		encoderConfig := zapcore.EncoderConfig{
+			MessageKey: "msg",
+		}
+		encoder := zapcore.NewJSONEncoder(encoderConfig)
+
+		//Core := zapcore.NewCore(encoder,zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout)), zapcore.DebugLevel)
+		core := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(writeSyncer), zapcore.DebugLevel)
+		FileLogger = zap.New(core)
 	}
 
-	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig = zapcore.EncoderConfig{
-		MessageKey: "msg",
-	}
-	encoder := zapcore.NewJSONEncoder(encoderConfig)
-
-	//Core := zapcore.NewCore(encoder,zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout)), zapcore.DebugLevel)
-	core := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(writeSyncer), zapcore.DebugLevel)
-	Logger = zap.New(core)
 }
 
-func ResHandle(reschan chan utils.PathDict) {
+func ResHandle(reschan chan *Resp) {
 	for res := range reschan {
-		ResSlice = append(ResSlice, res)
+		ResSlice = append(ResSlice, *res)
 	}
 
 }
@@ -77,7 +85,7 @@ func UpdateDict(dicpath []string, dirroot string) {
 	DictMap := make(map[string][]string)
 
 	for _, res := range ResSlice {
-		DictMap[res.Tag] = append(DictMap[res.Tag], res.Path)
+		DictMap[res.path.Tag] = append(DictMap[res.path.Tag], res.path.Path)
 	}
 
 	for _, dic := range dicpath {
@@ -94,11 +102,15 @@ func UpdateDict(dicpath []string, dirroot string) {
 		bytes, err := ioutil.ReadFile(dic)
 
 		if err != nil {
-			Logger.Error(dic + " open failed")
+			if FileLogger != nil {
+				FileLogger.Error(dic + " open failed")
+			}
 			continue
 		}
 		if err1 := json.Unmarshal(bytes, &OldDict); err1 != nil {
-			Logger.Error("Write json " + dic + " failed")
+			if FileLogger != nil {
+				FileLogger.Error("Write json " + dic + " failed")
+			}
 			continue
 		}
 
@@ -119,12 +131,16 @@ func UpdateDict(dicpath []string, dirroot string) {
 		result, errMarshall := utils.CustomMarshal(NewDict)
 
 		if errMarshall != nil {
-			Logger.Error(errMarshall.Error())
+			if FileLogger != nil {
+				FileLogger.Error(errMarshall.Error())
+			}
 			return
 		}
 
 		if err := ioutil.WriteFile(NewDicPath, []byte(result), 0644); err != nil {
-			Logger.Error("Write file " + NewDicPath + " error!")
+			if FileLogger != nil {
+				FileLogger.Error("Write file " + NewDicPath + " error!")
+			}
 			return
 		}
 	}

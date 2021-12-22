@@ -116,13 +116,15 @@ func HandleLocation(location string) (string, error) {
 	return handled, nil
 }
 
-func ReadDict(info []string, root string) []PathDict {
+func ReadDict(info []string, root string, rang string) []PathDict {
 	/*
 		用来读取目录字典的数据，转换成列表的形式
 	*/
 
 	//defer TimeCost()()
-	fmt.Println("start read dict")
+	if Nolog {
+		fmt.Println("start read dict")
+	}
 
 	var allJson []PathDict
 	var err error
@@ -142,14 +144,14 @@ func ReadDict(info []string, root string) []PathDict {
 			}
 
 		}
-		bytes, err := ioutil.ReadFile(dictpath)
+		dictbytes, err := ioutil.ReadFile(dictpath)
 		if err != nil {
 			println(dictpath + " open failed")
 			//panic(dictPath + " open failed")
 			continue
 		}
 
-		if err := json.Unmarshal(bytes, &eachJson); err != nil {
+		if err := json.Unmarshal(dictbytes, &eachJson); err != nil {
 			println(" Unmarshal failed")
 			continue
 		}
@@ -161,7 +163,9 @@ func ReadDict(info []string, root string) []PathDict {
 			}
 			allJson = append(allJson, mid)
 		}
-		fmt.Println("use dict: " + dictpath)
+		if Nolog {
+			fmt.Println("use dict: " + dictpath)
+		}
 
 	}
 
@@ -170,6 +174,30 @@ func ReadDict(info []string, root string) []PathDict {
 		func(i, j int) bool {
 			return allJson[i].Hits > allJson[j].Hits
 		})
+
+	if rang == "0" {
+		return allJson
+	} else if !strings.Contains(rang, "-") {
+		EndRang, err := strconv.Atoi(rang)
+		if err != nil {
+			panic("please check End")
+		}
+		return allJson[:EndRang]
+	} else if strings.Contains(rang, "-") {
+		RangList := strings.Split(rang, "-")
+		Ben, err := strconv.Atoi(RangList[0])
+		if err != nil {
+			panic("please check End")
+		}
+		if RangList[1] == "" {
+			return allJson[Ben:]
+		}
+		End, err := strconv.Atoi(RangList[1])
+		if err != nil {
+			panic("please check End")
+		}
+		return allJson[Ben:End]
+	}
 
 	return allJson
 

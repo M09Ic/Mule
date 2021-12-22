@@ -58,7 +58,7 @@ func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 		if result.StatusCode == 200 {
 			comres, err := Compare200(&wd.Body, &result.Body)
 			return comres, err
-		} else if !IntInSlice(result.StatusCode, BlackList) && ((result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503) {
+		} else if (!IntInSlice(result.StatusCode, BlackList) && result.StatusCode != 400) && ((result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503) {
 			return true, nil
 		}
 	// 类型2即资源不存在页面状态码为30x
@@ -68,14 +68,14 @@ func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 		} else if result.StatusCode == wd.StatusCode {
 			comres, err := Compare30x(wd.Location, result.Header.Get("Location"))
 			return comres, err
-		} else if !IntInSlice(result.StatusCode, BlackList) && ((result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503) {
+		} else if (!IntInSlice(result.StatusCode, BlackList) && result.StatusCode != 400) && ((result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503) {
 			return true, nil
 		}
 		// 类型3 即资源不存在页面状态码404或者奇奇怪怪
 	case 3:
 		// TODO 存在nginx的类似301跳转后的404页面
 		if wd.StatusCode != result.StatusCode {
-			if !IntInSlice(result.StatusCode, BlackList) && (result.StatusCode == 200 || (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503) {
+			if (!IntInSlice(result.StatusCode, BlackList) && result.StatusCode != 400) && (result.StatusCode == 200 || (result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503) {
 				return true, nil
 			}
 		}
