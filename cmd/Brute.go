@@ -61,7 +61,7 @@ func init() {
 	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
 	BruteCmd.Flags().BoolP("js", "j", false, "finder js from page")
 	BruteCmd.Flags().StringP("format", "", "raw", "the format of output")
-	BruteCmd.Flags().BoolP("nolog", "", false, "don't produce log")
+	BruteCmd.Flags().BoolP("nolog", "", true, "don't produce log")
 }
 
 func StartBrute(cmd *cobra.Command, args []string) error {
