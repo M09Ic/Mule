@@ -6,7 +6,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/fatih/color"
 	"go.uber.org/zap"
 	"strings"
 	"sync"
@@ -65,26 +64,28 @@ func AccessResponseWork(WorkPara *ResponsePara) {
 					resp.path.Hits += 1
 
 					if FileLogger != nil {
-						ProBar.Clear()
-						blue := color.New(color.FgBlue).SprintFunc()
-						cy := color.New(color.FgCyan).SprintFunc()
-						red := color.New(color.FgHiMagenta).SprintFunc()
-						fmt.Printf("Path: %s\tCode: %s\tLength: %s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
-						FileLogger.Info("Success",
-							zap.String("Path", finpath),
-							zap.Int("Code", resp.resp.StatusCode),
-							zap.Int64("Length", resp.resp.Length),
-							zap.String("MMH3", fingeriden.Mmh3),
-							zap.String("MD5", fingeriden.Hash),
-							zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+						//ProBar.Clear()
+						//blue := color.New(color.FgBlue).SprintFunc()
+						//cy := color.New(color.FgCyan).SprintFunc()
+						//red := color.New(color.FgHiMagenta).SprintFunc()
+						//fmt.Printf("Path: %s\tCode: %s\tLength: %s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
+						FileLogger.Info("success",
+							zap.String("path", finpath),
+							zap.Int("code", resp.resp.StatusCode),
+							zap.Int64("length", resp.resp.Length),
+							zap.String("title", fingeriden.Title),
+							zap.String("mmh3", fingeriden.Mmh3),
+							zap.String("md5", fingeriden.Hash),
+							zap.String("simhash", fingeriden.SimHash),
+							zap.String("frameworks", fingeriden.Frameworks.ToString()))
 					}
 					ResChan <- resp
 				case "host":
-					ProBar.Clear()
-					blue := color.New(color.FgBlue).SprintFunc()
-					cy := color.New(color.FgCyan).SprintFunc()
-					red := color.New(color.FgHiMagenta).SprintFunc()
-					fmt.Printf("IP: %s \tPath: %s \t Code:%s \t Length:%s\n", cy(resp.finpath.target), blue(resp.finpath.preHandleWord), cy(resp.resp.StatusCode), red(resp.resp.Length))
+					//ProBar.Clear()
+					//blue := color.New(color.FgBlue).SprintFunc()
+					//cy := color.New(color.FgCyan).SprintFunc()
+					//red := color.New(color.FgHiMagenta).SprintFunc()
+					//fmt.Printf("IP: %s \tPath: %s \t Code:%s \t Length:%s\n", cy(resp.finpath.target), blue(resp.finpath.preHandleWord), cy(resp.resp.StatusCode), red(resp.resp.Length))
 					resp.path.Hits += 1
 					FileLogger.Info("Success",
 						zap.String("ip", resp.finpath.target),

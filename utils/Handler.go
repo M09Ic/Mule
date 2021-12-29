@@ -116,7 +116,7 @@ func HandleLocation(location string) (string, error) {
 	return handled, nil
 }
 
-func ReadDict(info []string, root string, rang string) []PathDict {
+func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict {
 	/*
 		用来读取目录字典的数据，转换成列表的形式
 	*/
@@ -136,8 +136,9 @@ func ReadDict(info []string, root string, rang string) []PathDict {
 
 		if pathext == "" {
 			dictpath = filepath.Join(root, "Data", "DefDict", dictpath+".json")
-		} else if pathext == ".txt" {
+		} else if pathext == ".txt" && !noupdate {
 			dictpath, err = TextToJsonOfFile(dictpath, tagname, root)
+
 			if err != nil {
 				fmt.Printf("can't convert %s to json\n", dictpath)
 				continue
@@ -145,24 +146,41 @@ func ReadDict(info []string, root string, rang string) []PathDict {
 
 		}
 		dictbytes, err := ioutil.ReadFile(dictpath)
-		if err != nil {
-			println(dictpath + " open failed")
-			//panic(dictPath + " open failed")
-			continue
-		}
 
-		if err := json.Unmarshal(dictbytes, &eachJson); err != nil {
-			println(" Unmarshal failed")
-			continue
-		}
-
-		for _, y := range eachJson {
-			mid := PathDict{
-				PathInfo: y,
-				Tag:      tagname,
+		if !noupdate {
+			if err != nil {
+				println(dictpath + " open failed")
+				//panic(dictPath + " open failed")
+				continue
 			}
-			allJson = append(allJson, mid)
+
+			if err := json.Unmarshal(dictbytes, &eachJson); err != nil {
+				println(" Unmarshal failed")
+				continue
+			}
+
+			for _, y := range eachJson {
+				mid := PathDict{
+					PathInfo: y,
+					Tag:      tagname,
+				}
+				allJson = append(allJson, mid)
+			}
+		} else {
+			dict := string(dictbytes)
+			dicts := strings.Split(dict, "\n")
+			for _, p := range dicts {
+				mid := PathDict{
+					PathInfo: PathInfo{
+						Path: strings.TrimSpace(p),
+						Hits: 0,
+					},
+					Tag: "",
+				}
+				allJson = append(allJson, mid)
+			}
 		}
+
 		if Nolog {
 			fmt.Println("use dict: " + dictpath)
 		}

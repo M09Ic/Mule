@@ -89,7 +89,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	}
 
-	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range)
+	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range, Opts.NoUpdate)
 
 	utils.Configloader()
 	for _, curtarget := range Opts.Target {
@@ -99,12 +99,21 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		CurContext, CurCancel = context.WithCancel(taskroot)
 
 		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
-
 		wildcardmap, err := ScanPrepare(ctx, client, curtarget, Opts.DirRoot)
 
 		if err != nil {
 			fmt.Println(err)
 			continue
+		}
+
+		//fmt.Println("Start to clean channel")
+
+		select {
+		case <-CheckChan:
+
+		case <-Countchan:
+		case <-RepChan:
+		default:
 		}
 
 		// 加入cdn检测
@@ -129,7 +138,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		go TimingCheck(CurContext, client, curtarget, wildcardmap["default"], CheckChan, CurCancel)
 		//进度条
 		if Opts.Nolog {
-			go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
+			//go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
 		}
 
 		//  开启线程池
@@ -196,7 +205,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		if !Opts.Nolog {
 			JsonRes, _ := json.Marshal(ResSlice)
 			fmt.Println(string(JsonRes))
-		} else {
+		} else if !Opts.NoUpdate {
 			UpdateDict(Opts.Dictionary, Opts.DirRoot)
 		}
 		CurCancel()

@@ -4,7 +4,6 @@ import (
 	"Mule/utils"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/schollz/progressbar/v3"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -30,9 +29,9 @@ func InitLogger(logfile string, nolog bool) {
 	//fmt.Println("Start init logger")
 
 	if nolog {
-		fmt.Println(Mule)
-
-		fmt.Println(Version)
+		//fmt.Println(Mule)
+		//
+		//fmt.Println(Version)
 
 		writeSyncer, err := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
 		if err != nil {
