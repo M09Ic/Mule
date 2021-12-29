@@ -89,7 +89,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	}
 
-	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range)
+	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range, Opts.NoUpdate)
 
 	utils.Configloader()
 	for _, curtarget := range Opts.Target {

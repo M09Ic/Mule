@@ -116,7 +116,7 @@ func HandleLocation(location string) (string, error) {
 	return handled, nil
 }
 
-func ReadDict(info []string, root string, rang string) []PathDict {
+func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict {
 	/*
 		用来读取目录字典的数据，转换成列表的形式
 	*/

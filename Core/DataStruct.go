@@ -17,6 +17,7 @@ type Options struct {
 	Mod        string
 	JsFinder   bool
 	Nolog      bool
+	NoUpdate   bool
 	Transport  *http.Transport
 }
 

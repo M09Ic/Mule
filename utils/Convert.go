@@ -102,7 +102,10 @@ func TextToJsonOfFile(fileName string, fn string, root string) (string, error) {
 
 	info, _ := CustomMarshal(newSlice)
 	NewFilename := filepath.Join(root, "Data", "DefDict", fn+".json")
-	_ = ioutil.WriteFile(NewFilename, []byte(info), 0644)
+	err = ioutil.WriteFile(NewFilename, []byte(info), 0644)
+	if err != nil {
+		fmt.Println("Please check ")
+	}
 
 	return NewFilename, nil
 }

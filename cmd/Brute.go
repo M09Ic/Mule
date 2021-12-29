@@ -62,6 +62,7 @@ func init() {
 	BruteCmd.Flags().BoolP("js", "j", false, "finder js from page")
 	BruteCmd.Flags().StringP("format", "", "raw", "the format of output")
 	BruteCmd.Flags().BoolP("nolog", "", true, "don't produce log")
+	BruteCmd.Flags().BoolP("noupdate", "", true, "don't update dict to json")
 }
 
 func StartBrute(cmd *cobra.Command, args []string) error {
@@ -253,6 +254,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	}
 
 	opts.JsFinder, err = cmd.Flags().GetBool("js")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
+	}
+
+	opts.NoUpdate, err = cmd.Flags().GetBool("noupdate")
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
