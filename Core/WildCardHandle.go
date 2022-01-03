@@ -66,7 +66,7 @@ func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 		if result.StatusCode == 200 {
 			return true, nil
 		} else if result.StatusCode == wd.StatusCode {
-			comres, err := Compare30x(wd.Location, result.Header.Get("Location"))
+			comres, err := Compare30x(wd.Location, strings.Split(result.Header.Get("Location"), ";")[0])
 			return comres, err
 		} else if (!IntInSlice(result.StatusCode, BlackList) && result.StatusCode != 400) && ((result.StatusCode > 300 && result.StatusCode < 404) || result.StatusCode == 503) {
 			return true, nil
@@ -119,9 +119,10 @@ func HandleWildCard(wildcard *ReqRes) (*WildCard, error) {
 	} else if wildcard.StatusCode > 300 && wildcard.StatusCode < 404 {
 		wd := WildCard{
 			StatusCode: wildcard.StatusCode,
-			Location:   wildcard.Header.Get("Location"),
+			Location:   strings.Split(wildcard.Header.Get("Location"), ";")[0],
 			Type:       2,
 		}
+
 		return &wd, nil
 	} else {
 		wd := WildCard{

@@ -72,7 +72,7 @@ func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *W
 					CancelFlag += 1
 				}
 
-				if CancelFlag > Block {
+				if CancelFlag >= Block {
 					//FileLogger.Info("failed",
 					//	zap.String("Path", ""),
 					//	zap.Int("Code", 0),

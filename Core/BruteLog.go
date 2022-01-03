@@ -167,6 +167,7 @@ func IntInSlice(a int, list []int) bool {
 
 func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan chan struct{}) {
 	// create and start new bar
+	var tmp int
 
 	ProBar = progressbar.NewOptions(PathCap,
 		progressbar.OptionEnableColorCodes(true),
@@ -191,7 +192,12 @@ func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan 
 				return
 			}
 
-			ProBar.Add(1)
+			tmp += 1
+			if tmp%1000 == 0 && tmp != 0 {
+				//ProBar.Clear()
+				ProBar.Add(1000)
+				tmp = 0
+			}
 
 		}
 	}
