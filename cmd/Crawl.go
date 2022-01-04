@@ -14,7 +14,7 @@ var CrawlCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(BruteCmd)
+	rootCmd.AddCommand(CrawlCmd)
 
 	// Here you will define your flags and configuration settings.
 

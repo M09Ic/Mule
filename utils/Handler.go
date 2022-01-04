@@ -145,24 +145,42 @@ func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict
 
 		}
 		dictbytes, err := ioutil.ReadFile(dictpath)
-		if err != nil {
-			println(dictpath + " open failed")
-			//panic(dictPath + " open failed")
-			continue
-		}
 
-		if err := json.Unmarshal(dictbytes, &eachJson); err != nil {
-			println(" Unmarshal failed")
-			continue
-		}
-
-		for _, y := range eachJson {
-			mid := PathDict{
-				PathInfo: y,
-				Tag:      tagname,
+		if !noupdate {
+			fmt.Println("dict won't be inter dict")
+			if err != nil {
+				println(dictpath + " open failed")
+				//panic(dictPath + " open failed")
+				continue
 			}
-			allJson = append(allJson, mid)
+
+			if err := json.Unmarshal(dictbytes, &eachJson); err != nil {
+				println(" Unmarshal failed")
+				continue
+			}
+
+			for _, y := range eachJson {
+				mid := PathDict{
+					PathInfo: y,
+					Tag:      tagname,
+				}
+				allJson = append(allJson, mid)
+			}
+		} else {
+			dict := string(dictbytes)
+			dicts := strings.Split(dict, "\n")
+			for _, p := range dicts {
+				mid := PathDict{
+					PathInfo: PathInfo{
+						Path: strings.TrimSpace(p),
+						Hits: 0,
+					},
+					Tag: "",
+				}
+				allJson = append(allJson, mid)
+			}
 		}
+
 		if Nolog {
 			fmt.Println("use dict: " + dictpath)
 		}
@@ -178,11 +196,15 @@ func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict
 	if rang == "0" {
 		return allJson
 	} else if !strings.Contains(rang, "-") {
-		EndRang, err := strconv.Atoi(rang)
+		End, err := strconv.Atoi(rang)
 		if err != nil {
 			panic("please check End")
 		}
-		return allJson[:EndRang]
+		if End >= len(allJson) {
+			fmt.Println("out of range,it's set to the end")
+			End = len(allJson)
+		}
+		return allJson[:End]
 	} else if strings.Contains(rang, "-") {
 		RangList := strings.Split(rang, "-")
 		Ben, err := strconv.Atoi(RangList[0])
@@ -195,6 +217,10 @@ func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict
 		End, err := strconv.Atoi(RangList[1])
 		if err != nil {
 			panic("please check End")
+		}
+		if End >= len(allJson) {
+			fmt.Println("out of range,it's set to the end")
+			End = len(allJson)
 		}
 		return allJson[Ben:End]
 	}
@@ -286,4 +312,31 @@ func GetExtType(rawUrl string) string {
 		return ""
 	}
 	return path.Ext(u.Path)
+}
+
+func HasStdin() bool {
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		return false
+	}
+
+	isPipedFromChrDev := (stat.Mode() & os.ModeCharDevice) == 0
+	isPipedFromFIFO := (stat.Mode() & os.ModeNamedPipe) != 0
+
+	return isPipedFromChrDev || isPipedFromFIFO
+}
+
+func ReadStdin(file *os.File) (TargetList []string, err error) {
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		user := strings.TrimSpace(scanner.Text())
+		if user != "" {
+			TargetList = append(TargetList, user)
+		}
+	}
+	return TargetList, err
 }

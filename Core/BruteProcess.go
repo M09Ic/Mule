@@ -196,7 +196,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		if !Opts.Nolog {
 			JsonRes, _ := json.Marshal(ResSlice)
 			fmt.Println(string(JsonRes))
-		} else {
+		} else if Opts.NoUpdate {
 			UpdateDict(Opts.Dictionary, Opts.DirRoot)
 		}
 		CurCancel()

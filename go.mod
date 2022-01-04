@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/antlabs/strsim v0.0.2
-	github.com/fatih/color v1.10.0
+	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
 	github.com/go-dedup/megophone v0.0.0-20170830025436-f01be21026f5 // indirect
 	github.com/go-dedup/simhash v0.0.0-20170904020510-9ecaca7b509c
 	github.com/go-dedup/text v0.0.0-20170907015346-8bb1b95e3cb7 // indirect

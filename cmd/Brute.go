@@ -62,7 +62,7 @@ func init() {
 	BruteCmd.Flags().BoolP("js", "j", false, "finder js from page")
 	BruteCmd.Flags().StringP("format", "", "raw", "the format of output")
 	BruteCmd.Flags().BoolP("nolog", "", true, "don't produce log")
-	BruteCmd.Flags().BoolP("noupdate", "", true, "don't update dict to json")
+	BruteCmd.Flags().BoolP("noupdate", "", false, "don't update dict to json")
 }
 
 func StartBrute(cmd *cobra.Command, args []string) error {
@@ -120,20 +120,28 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for urls: %w", err)
 	}
 
+	if utils.HasStdin() {
+		stdinip, _ := utils.ReadStdin(os.Stdin)
+		FTargets = append(FTargets, stdinip...)
+	}
+
 	var fileprex string
-	if FTarget == "" && STarget == "" {
-		return nil, fmt.Errorf("Please input the target")
-	} else if FTarget != "" && STarget == "" {
-		FTargets, err = utils.ReadTarget(FTarget)
+	if STarget != "" {
+		FTargets = append(FTargets, STarget)
+	}
+
+	if FTarget != "" {
+		Targets, err := utils.ReadTarget(FTarget)
 		fileprex = FTarget
 		if err != nil {
 			return nil, fmt.Errorf("please check target file")
 		}
-	} else if FTarget == "" && STarget != "" {
-		FTargets = append(FTargets, STarget)
-		fileprex = STarget
-	} else {
-		return nil, fmt.Errorf("only input u or U,cannot use in the same time")
+		FTargets = append(FTargets, Targets...)
+	}
+
+	if len(FTargets) == 0 {
+		fmt.Println("Target summary is zero")
+		return nil, err
 	}
 
 	for _, t := range FTargets {
