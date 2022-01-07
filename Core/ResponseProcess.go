@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"github.com/fatih/color"
 	"go.uber.org/zap"
 	"strings"
 	"sync"
@@ -17,6 +18,7 @@ type ResponsePara struct {
 	repchan  chan *Resp
 	wgs      *sync.WaitGroup
 	wdmap    map[string]*WildCard
+	cachemap *sync.Map
 	mod      string
 	jsfinder bool
 }
@@ -44,14 +46,17 @@ func AccessResponseWork(WorkPara *ResponsePara) {
 		case <-WorkPara.ctx.Done():
 			return
 
-		case <-time.After(3 * time.Second):
+		case <-time.After(6 * time.Second):
 			return
 		case resp, ok := <-WorkPara.repchan:
 			if !ok {
 				return
 			}
 			// 和资源不存在页面进行比较
-			comres, _ := CustomCompare(WorkPara.wdmap, resp.finpath.preHandleWord, resp.resp)
+
+			resp.Hash = utils.Md5Hash(resp.resp.Body)
+
+			comres, _ := CustomCompare(WorkPara.wdmap, resp.finpath.preHandleWord, resp, WorkPara.cachemap)
 			//comres, err := CompareWildCard(WorkPara.wdmap["default"], result)
 
 			if comres {
@@ -64,34 +69,65 @@ func AccessResponseWork(WorkPara *ResponsePara) {
 					resp.path.Hits += 1
 
 					if FileLogger != nil {
-						//ProBar.Clear()
-						//blue := color.New(color.FgBlue).SprintFunc()
-						//cy := color.New(color.FgCyan).SprintFunc()
-						//red := color.New(color.FgHiMagenta).SprintFunc()
-						//fmt.Printf("Path: %s\tCode: %s\tLength: %s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
-						FileLogger.Info("Success",
-							zap.String("Path", finpath),
-							zap.Int("Code", resp.resp.StatusCode),
-							zap.Int64("Length", resp.resp.Length),
-							zap.String("MMH3", fingeriden.Mmh3),
-							zap.String("MD5", fingeriden.Hash),
-							zap.String("SIM3", fingeriden.SimHash),
-							zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+						if !utils.Noconsole {
+							err := ProBar.Clear()
+							if err != nil {
+								return
+							}
+							blue := color.New(color.FgBlue).SprintFunc()
+							cy := color.New(color.FgCyan).SprintFunc()
+							red := color.New(color.FgHiMagenta).SprintFunc()
+							fmt.Printf("Path: %s\tCode: %s\tLength: %s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
+							FileLogger.Info("Success",
+								zap.String("Path", finpath),
+								zap.Int("Code", resp.resp.StatusCode),
+								zap.Int64("Length", resp.resp.Length),
+								zap.String("MMH3", fingeriden.Mmh3),
+								zap.String("MD5", fingeriden.Hash),
+								zap.String("SIM3", fingeriden.SimHash),
+								zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+
+						}
+
 					}
-					ResChan <- resp
+					select {
+					case <-WorkPara.ctx.Done():
+						return
+					default:
+						select {
+						case ResChan <- resp:
+						case <-time.After(5 * time.Second):
+							return
+						}
+
+					}
+
 				case "host":
-					//ProBar.Clear()
+
 					//blue := color.New(color.FgBlue).SprintFunc()
 					//cy := color.New(color.FgCyan).SprintFunc()
 					//red := color.New(color.FgHiMagenta).SprintFunc()
 					//fmt.Printf("IP: %s \tPath: %s \t Code:%s \t Length:%s\n", cy(resp.finpath.target), blue(resp.finpath.preHandleWord), cy(resp.resp.StatusCode), red(resp.resp.Length))
 					resp.path.Hits += 1
-					FileLogger.Info("Success",
-						zap.String("ip", resp.finpath.target),
-						zap.String("host", resp.finpath.preHandleWord),
-						zap.Int("Code", resp.resp.StatusCode),
-						zap.Int64("Length", resp.resp.Length))
-					ResChan <- resp
+					if !utils.Nolog {
+						//ProBar.Clear()
+						FileLogger.Info("Success",
+							zap.String("ip", resp.finpath.target),
+							zap.String("host", resp.finpath.preHandleWord),
+							zap.Int("Code", resp.resp.StatusCode),
+							zap.Int64("Length", resp.resp.Length))
+					}
+					select {
+					case <-WorkPara.ctx.Done():
+						return
+					default:
+
+						select {
+						case ResChan <- resp:
+						case <-time.After(5 * time.Second):
+							return
+						}
+					}
 				}
 
 				if WorkPara.jsfinder && WorkPara.mod == "default" {
@@ -110,7 +146,6 @@ func identifyResp(resp *ReqRes) IdentifyRes {
 	iden.Title = getTitle(string(resp.Body))
 	iden.Title = EncodeTitle(iden.Title)
 	if len(resp.Body) != 0 {
-		iden.Hash = utils.Md5Hash(resp.Body)
 		iden.Mmh3 = utils.Mmh3Hash32(resp.Body)
 		iden.SimHash = utils.Simhash(resp.Body)
 	}
@@ -188,18 +223,6 @@ func httpFingerMatch(result *IdentifyRes, resp *ReqRes, finger *utils.Finger) {
 		}
 	}
 
-	//} else if finger.Regexps.Cookie != nil {
-	//	for _, cookie := range finger.Regexps.Cookie {
-	//		if resp == nil {
-	//			if strings.Contains(content, cookie) {
-	//				result.Frameworks = finger.Name
-	//				return
-	//			}
-	//		} else if cookies[cookie] != "" {
-	//			result.Frameworks = finger.Name
-	//			return
-	//		}
-	//	}/
 	// MD5 匹配
 	for _, md5s := range finger.Regexps.MD5 {
 		m := md5.Sum([]byte(content))

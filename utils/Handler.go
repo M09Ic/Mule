@@ -122,7 +122,7 @@ func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict
 	*/
 
 	//defer TimeCost()()
-	if Nolog {
+	if !Nolog {
 		fmt.Println("start read dict")
 	}
 
@@ -136,23 +136,24 @@ func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict
 
 		if pathext == "" {
 			dictpath = filepath.Join(root, "Data", "DefDict", dictpath+".json")
-		} else if pathext == ".txt" {
+			pathext = ".json"
+		} else if pathext == ".txt" && !noupdate {
 			dictpath, err = TextToJsonOfFile(dictpath, tagname, root)
 			if err != nil {
 				fmt.Printf("can't convert %s to json\n", dictpath)
 				continue
 			}
+			pathext = ".json"
 
 		}
 		dictbytes, err := ioutil.ReadFile(dictpath)
+		if err != nil {
+			println(dictpath + " open failed")
+			//panic(dictPath + " open failed")
+			continue
+		}
 
-		if !noupdate {
-			fmt.Println("dict won't be inter dict")
-			if err != nil {
-				println(dictpath + " open failed")
-				//panic(dictPath + " open failed")
-				continue
-			}
+		if pathext == ".json" {
 
 			if err := json.Unmarshal(dictbytes, &eachJson); err != nil {
 				println(" Unmarshal failed")
@@ -166,7 +167,9 @@ func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict
 				}
 				allJson = append(allJson, mid)
 			}
-		} else {
+		} else if pathext == ".txt" {
+			fmt.Println("dict won't be inter dict")
+
 			dict := string(dictbytes)
 			dicts := strings.Split(dict, "\n")
 			for _, p := range dicts {
@@ -179,9 +182,11 @@ func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict
 				}
 				allJson = append(allJson, mid)
 			}
+		} else {
+			panic("please check your dict only inter json or txt")
 		}
 
-		if Nolog {
+		if !Nolog {
 			fmt.Println("use dict: " + dictpath)
 		}
 

@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 var ResChan = make(chan *Resp, 1000)
@@ -24,15 +25,17 @@ var CheckFlag int
 
 //初始化log
 
-func InitLogger(logfile string, nolog bool) {
+func InitLogger(logfile string, nolog, nobanner bool) {
 	//defer utils.TimeCost()()
 	//
 	//fmt.Println("Start init logger")
 
-	if nolog {
-		fmt.Println(Mule)
+	if !nolog {
+		if !nobanner {
+			fmt.Println(Mule)
 
-		fmt.Println(Version)
+			fmt.Println(Version)
+		}
 
 		writeSyncer, err := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
 		if err != nil {
@@ -52,9 +55,17 @@ func InitLogger(logfile string, nolog bool) {
 
 }
 
-func ResHandle(reschan chan *Resp) {
-	for res := range reschan {
-		ResSlice = append(ResSlice, *res)
+func ResHandle(ctx context.Context, reschan chan *Resp) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case res, ok := <-reschan:
+			if !ok {
+				return
+			}
+			ResSlice = append(ResSlice, *res)
+		}
 	}
 
 }
@@ -184,18 +195,20 @@ func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan 
 	for {
 		select {
 		case <-ctx.Done():
+			time.Sleep(200 * time.Millisecond)
 			ProBar.Finish()
 			return
 		case _, ok := <-CountChan:
 			if !ok {
+				time.Sleep(200 * time.Millisecond)
 				ProBar.Finish()
 				return
 			}
 
 			tmp += 1
-			if tmp%1000 == 0 && tmp != 0 {
+			if tmp%100 == 0 && tmp != 0 {
 				//ProBar.Clear()
-				ProBar.Add(1000)
+				ProBar.Add(100)
 				tmp = 0
 			}
 

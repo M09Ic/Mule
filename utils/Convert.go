@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-var Nolog bool
+var Nolog, Noconsole bool
 
 func UnFlate(input []byte) []byte {
 	rdata := bytes.NewReader(input)

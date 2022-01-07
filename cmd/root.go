@@ -16,15 +16,12 @@ limitations under the License.
 package cmd
 
 import (
-	"Mule/Core"
 	"context"
 	"fmt"
-	"github.com/spf13/cobra"
-	"os"
-	"os/signal"
-
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var cfgFile string
@@ -50,22 +47,22 @@ func Execute() {
 	var cancel context.CancelFunc
 	maincontext, cancel = context.WithCancel(context.Background())
 	defer cancel()
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	defer func() {
-		signal.Stop(signalChan)
-		cancel()
-	}()
-	go func() {
-		select {
-		case <-signalChan:
-			// caught CTRL+C
-			fmt.Println("\n[!] Keyboard interrupt detected, skip current target.")
-			Core.CurCancel()
-
-		case <-maincontext.Done():
-		}
-	}()
+	//signalChan := make(chan os.Signal, 1)
+	//signal.Notify(signalChan, os.Interrupt)
+	//defer func() {
+	//	signal.Stop(signalChan)
+	//	cancel()
+	//}()
+	//go func() {
+	//	select {
+	//	case <-signalChan:
+	//		// caught CTRL+C
+	//		fmt.Println("\n[!] Keyboard interrupt detected, skip current target.")
+	//		Core.CurCancel()
+	//
+	//	case <-maincontext.Done():
+	//	}
+	//}()
 	cobra.CheckErr(rootCmd.Execute())
 }
 

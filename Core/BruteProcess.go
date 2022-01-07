@@ -45,7 +45,7 @@ func ScanPrepare(ctx context.Context, client *CustomClient, target string, root 
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("cann't connect to %s", target)
+		return nil, fmt.Errorf("cann't connect to %s\n", target)
 	}
 
 	RandomPath = utils.RandStringBytesMaskImprSrcUnsafe(12)
@@ -65,10 +65,17 @@ func ScanPrepare(ctx context.Context, client *CustomClient, target string, root 
 
 func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
+	//f, err := os.OpenFile("cpu.prof", os.O_RDWR|os.O_CREATE, 0644)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//pprof.StartCPUProfile(f)
+
 	taskroot, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	var SpWgs sync.WaitGroup
+	//js探测
 	if Opts.JsFinder {
 		go SpiderResHandle(SpiderChan)
 		SpiderScanPool, _ := ants.NewPoolWithFunc(10, func(Para interface{}) {
@@ -106,6 +113,15 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			fmt.Println(err)
 			continue
 		}
+		select {
+		case <-CheckChan:
+
+		case <-Countchan:
+		case <-RepChan:
+
+		case <-ResChan:
+		default:
+		}
 
 		// 加入cdn检测
 		r, _ := regexp.Compile("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}")
@@ -115,7 +131,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			if err == nil {
 
 				if found, err := client.Check(net.ParseIP(ipv4)); found && err == nil {
-					fmt.Printf("%v is a part of cdn, so pass", ipv4)
+					fmt.Printf("%v is a part of cdn, so pass\n", ipv4)
 					continue
 				}
 			}
@@ -128,7 +144,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		// waf检测
 		go TimingCheck(CurContext, client, curtarget, wildcardmap["default"], CheckChan, CurCancel)
 		//进度条
-		if Opts.Nolog {
+		if !Opts.Nolog {
 			go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
 		}
 
@@ -154,17 +170,20 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			wdmap:    wildcardmap,
 		}
 
+		cm := sync.Map{}
+
 		RespPre := ResponsePara{
 			ctx:      CurContext,
 			repchan:  RepChan,
 			wgs:      &RepWgs,
 			wdmap:    wildcardmap,
+			cachemap: &cm,
 			mod:      Opts.Mod,
 			jsfinder: Opts.JsFinder,
 		}
 
 		//开启结果协程
-		go ResHandle(ResChan)
+		go ResHandle(CurContext, ResChan)
 
 		for i := 0; i < Opts.Thread; i++ {
 			ReqWgs.Add(1)
@@ -174,8 +193,31 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		}
 
 		//等待结束
+
+		//go func(){
+		//	for {
+		//		fmt.Println()
+		//	}
+		//}()
+
 		ReqWgs.Wait()
-		RepWgs.Wait()
+		ReqScanPool.Release()
+
+		StopCh := make(chan struct{})
+
+		go func() {
+			RepWgs.Wait()
+			close(StopCh)
+		}()
+
+		select {
+		case <-StopCh:
+			break
+		case <-time.After(time.Duration(Opts.Timeout) * 2 * time.Millisecond):
+			break
+		}
+		RepScanPool.Release()
+		//RepWgs.Wait()
 		if Opts.JsFinder {
 			fmt.Println("扫描结束，请等待linkfinder运行结束")
 			time.Sleep(500 * time.Millisecond)
@@ -193,13 +235,21 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		if Opts.JsFinder {
 			OutputLinkFinder()
 		}
-		if !Opts.Nolog {
+		if Opts.Nolog {
 			JsonRes, _ := json.Marshal(ResSlice)
 			fmt.Println(string(JsonRes))
-		} else if Opts.NoUpdate {
+		}
+		if !Opts.NoUpdate {
 			UpdateDict(Opts.Dictionary, Opts.DirRoot)
 		}
-		CurCancel()
+		//pprof.StopCPUProfile()
+		//f.Close()
+		select {
+		case <-CurContext.Done():
+			continue
+		default:
+			CurCancel()
+		}
 	}
 
 	return nil
@@ -239,7 +289,7 @@ func AccessWork(WorkPara *PoolPara) {
 				return
 			}
 
-			if utils.Nolog {
+			if !utils.Nolog {
 				Countchan <- struct{}{}
 			}
 
@@ -277,7 +327,18 @@ func AccessWork(WorkPara *PoolPara) {
 				path: word,
 			}
 
-			RepChan <- &curresp
+			//RepChan <- &curresp
+			select {
+			case <-WorkPara.ctx.Done():
+				return
+			default:
+				select {
+				case RepChan <- &curresp:
+				case <-time.After(5 * time.Second):
+					return
+				}
+
+			}
 
 		}
 	}

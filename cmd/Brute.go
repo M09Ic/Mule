@@ -23,6 +23,8 @@ import (
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -56,13 +58,16 @@ func init() {
 	BruteCmd.Flags().StringP("range", "r", "0", "range of dict")
 	BruteCmd.Flags().StringP("Cookie", "C", "", "Request's Cookie")
 	BruteCmd.Flags().IntP("timeout", "", 5, "request's timeout")
-	BruteCmd.Flags().IntP("Thread", "t", 30, "the size of thread pool")
+	BruteCmd.Flags().IntP("Thread", "t", 50, "the size of thread pool")
 	BruteCmd.Flags().IntP("block", "b", 10, "the number of auto stop brute")
 	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
 	BruteCmd.Flags().BoolP("js", "j", false, "finder js from page")
 	BruteCmd.Flags().StringP("format", "", "raw", "the format of output")
-	BruteCmd.Flags().BoolP("nolog", "", true, "don't produce log")
+	BruteCmd.Flags().BoolP("nolog", "", false, "don't produce log")
 	BruteCmd.Flags().BoolP("noupdate", "", false, "don't update dict to json")
+	BruteCmd.Flags().BoolP("noconsole", "", false, "dont output result in console")
+	BruteCmd.Flags().BoolP("nobanner", "", false, "dont output banner in console")
+
 }
 
 func StartBrute(cmd *cobra.Command, args []string) error {
@@ -100,10 +105,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	var err error
 	var FTargets []string
 
-	DefaultDic, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
+	DefaultDic := getExcPath()
 
 	opts.DirRoot = DefaultDic
 	opts.Range = "0"
@@ -190,6 +192,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for url: %w", err)
 	}
 
+	utils.Noconsole, err = cmd.Flags().GetBool("noconsole")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value noconsole: %w", err)
+	}
+
 	// 处理输入的header
 	headers, err := cmd.Flags().GetStringArray("Headers")
 	if err != nil {
@@ -273,6 +281,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
 	}
 
+	nobanner, err := cmd.Flags().GetBool("nobanner")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
+	}
+
 	opts.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -282,8 +296,18 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		//DisableKeepAlives: true,
 	}
 
-	Core.InitLogger(LogFile, opts.Nolog)
+	Core.InitLogger(LogFile, opts.Nolog, nobanner)
 
 	return &opts, nil
 
+}
+
+func getExcPath() string {
+	file, _ := exec.LookPath(os.Args[0])
+	// 获取包含可执行文件名称的路径
+	path, _ := filepath.Abs(file)
+	// 获取可执行文件所在目录
+	index := strings.LastIndex(path, string(os.PathSeparator))
+	ret := path[:index]
+	return strings.Replace(ret, "\\", "/", -1)
 }

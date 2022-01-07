@@ -26,14 +26,19 @@ Flags:
    * -m, --mod string            default to brute dict, set '-m host' to brute host
    * -t, --Thread int            the size of thread pool (default 30)
    * --blacklist ints        the black list of statuscode
-   * -b, --block int             the number of auto stop brute (default 4)
+   * -b, --block int             the number of auto stop brute (default 10)
    * -d, --dic string            dictionary to brute
    * -f, --flag string           use default dictionary in /Data
    * -h, --help                  help for Brute
-   * -o, --output string         output res default in ./res.log (default "./res.log")
+   * -o, --output string         默认会根据你本次扫描命令行输出在log文件夹下
    * --timeout int           request's timeout (default 5)
    * -u, --url string            brute target(currently only single url)
    * -U, --urls string           targets from file
+   * --noconsole                 结果不输出在console，只有基本信息
+   * --noupdate                  不生成和更新内部字典
+   * --nolog                     不生成日志
+   * --js                        爆破结果进行js信息收集
+   * -r, --range                 设置爆破字典的范围，如2k的字典可以爆破前100即 -r 0-100
 
 
 
@@ -45,22 +50,20 @@ Flags:
 * 每次扫描结束后会更新一次字典,自我优化迭代
 
 example:
-Mule Brute -u http://baidu.com -f php -U /root/aaa.txt -t 100 -o ./res3.log
-
+Mule Brute -u http://baidu.com -f inter -U /root/aaa.txt -t 100
+inter 为曾华字典
+inter2 为王一帆字典
 
 ## 部分设计细节
 1. 会没100次请求后,检测一下是否ip被block了,如果被block则停止,block次数默认为3,可以自行根据网络状况更改,网络差的话也容易触发
 2. 使用ctrl+C后会跳过当前目标进入下一个
 3. 在Data目录下有个SpecialList的目录,里面的文件exwildcard是为了部分中间件或者防火墙等对敏感文件后缀做了特殊处理,而容易产生大量误报,如果你发现在目录爆破中出现一个后缀有大量误报,请扩展他.
     1. 扩展格式为/$$.ext,$$为占位符用于替换测试
+4. 
 
 
 
 
-## 性能对比
-
-1. 御剑
-2. dirsearch
 
 
-在1核1g的阿里云下，线程超时均相同的情况下进行测试，得出结果，比御剑和dirsearch速度均优于50%。
+

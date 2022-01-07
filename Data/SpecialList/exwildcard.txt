@@ -8,3 +8,4 @@
 /$$.inc
 /$$.sql
 /$$.conf
+/$$.bin

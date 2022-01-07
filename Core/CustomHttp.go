@@ -32,6 +32,7 @@ func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 	custom.CuClient = &http.Client{
 		Transport: Opt.Transport,
 		Timeout:   time.Second * time.Duration(Opt.Timeout),
+
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 5 {
 				return errors.New("stopped after 10 redirects")

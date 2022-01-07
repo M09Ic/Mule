@@ -7,6 +7,7 @@ import (
 	"github.com/antlabs/strsim"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 var RandomPath string
@@ -30,7 +31,7 @@ func Compare30x(WdLoc string, Res string) (bool, error) {
 
 	ComRatio := strsim.Compare(HandleWd, HandleRes)
 
-	if ratio > ComRatio {
+	if ratio < ComRatio {
 		return true, nil
 	}
 
@@ -41,9 +42,21 @@ func Compare30x(WdLoc string, Res string) (bool, error) {
 func Compare200(WdBody *[]byte, ResBody *[]byte) (bool, error) {
 	ratio := 0.98
 
-	ComRatio := strsim.Compare(string(*WdBody), string(*ResBody))
+	var Wdstr, Restr string
+	if len(*WdBody) >= 10000 {
+		Wdstr = string((*WdBody)[:10000])
+	} else {
+		Wdstr = string(*WdBody)
+	}
 
-	if ratio > ComRatio {
+	if len(*ResBody) >= 10000 {
+		Restr = string((*ResBody)[:10000])
+	} else {
+		Restr = string(*WdBody)
+	}
+	ComRatio := strsim.Compare(Wdstr, Restr)
+
+	if ratio < ComRatio {
 		return true, nil
 	}
 
@@ -85,21 +98,28 @@ func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 
 }
 
-func CustomCompare(wdmap map[string]*WildCard, path string, result *ReqRes) (bool, error) {
+func CustomCompare(wdmap map[string]*WildCard, path string, result *Resp, cachemap *sync.Map) (bool, error) {
+
+	if res, ok := cachemap.Load(result.Hash); ok {
+		//fmt.Println("use cache")
+		return res.(bool), nil
+	}
 
 	for key := range wdmap {
 		if key == "default" {
 			continue
 		} else {
 			if strings.Contains(path, key) {
-				res, err := CompareWildCard(wdmap[key], result)
+				res, err := CompareWildCard(wdmap[key], result.resp)
+				cachemap.Store(result.Hash, res)
 				return res, err
 			}
 		}
 	}
 
 	key := "default"
-	res, err := CompareWildCard(wdmap[key], result)
+	res, err := CompareWildCard(wdmap[key], result.resp)
+	cachemap.Store(result.Hash, res)
 	return res, err
 
 }
