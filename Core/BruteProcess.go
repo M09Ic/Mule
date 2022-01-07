@@ -33,36 +33,6 @@ type PoolPara struct {
 	wdmap    map[string]*WildCard
 }
 
-func ScanPrepare(ctx context.Context, client *CustomClient, target string, root string) (map[string]*WildCard, error) {
-
-	//defer utils.TimeCost()()
-	//fmt.Println("start scan prepare")
-	var WdMap map[string]*WildCard
-
-	_, err := client.RunRequest(ctx, target, Additional{
-		Mod:   "default",
-		Value: "",
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("cann't connect to %s\n", target)
-	}
-
-	RandomPath = utils.RandStringBytesMaskImprSrcUnsafe(12)
-
-	//wildcard, err := client.RunRequest(ctx, target+"/"+RandomPath)
-
-	WdMap, err = GenWildCardMap(ctx, client, RandomPath, target, root)
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	return WdMap, nil
-
-}
-
 func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	//f, err := os.OpenFile("cpu.prof", os.O_RDWR|os.O_CREATE, 0644)
@@ -192,14 +162,6 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			_ = ReqScanPool.Invoke(PrePara)
 		}
 
-		//等待结束
-
-		//go func(){
-		//	for {
-		//		fmt.Println()
-		//	}
-		//}()
-
 		ReqWgs.Wait()
 		ReqScanPool.Release()
 
@@ -212,25 +174,19 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 		select {
 		case <-StopCh:
+			fmt.Println("break of close")
 			break
-		case <-time.After(time.Duration(Opts.Timeout) * 2 * time.Millisecond):
+		case <-time.After(time.Duration(Opts.Timeout+1) * time.Second):
+			fmt.Println("break of time")
 			break
 		}
+
 		RepScanPool.Release()
-		//RepWgs.Wait()
 		if Opts.JsFinder {
 			fmt.Println("扫描结束，请等待linkfinder运行结束")
 			time.Sleep(500 * time.Millisecond)
 			SpWgs.Wait()
 		}
-
-		//elapsed := time.Since(t1)
-		//fmt.Println("App elapsed: ", elapsed)
-
-		// TODO 根据hits更新json
-		//for _, i := range ResSlice{
-		//	fmt.Println(i.Path)
-		//}
 
 		if Opts.JsFinder {
 			OutputLinkFinder()
@@ -334,7 +290,7 @@ func AccessWork(WorkPara *PoolPara) {
 			default:
 				select {
 				case RepChan <- &curresp:
-				case <-time.After(5 * time.Second):
+				case <-time.After(2 * time.Second):
 					return
 				}
 

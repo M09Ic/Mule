@@ -15,9 +15,9 @@ import (
 	"time"
 )
 
-var ResChan = make(chan *Resp, 1000)
+var ResChan = make(chan *utils.PathDict, 1000)
 
-var ResSlice []Resp
+var ResSlice []utils.PathDict
 
 var FileLogger *zap.Logger
 var ProBar *progressbar.ProgressBar
@@ -55,7 +55,7 @@ func InitLogger(logfile string, nolog, nobanner bool) {
 
 }
 
-func ResHandle(ctx context.Context, reschan chan *Resp) {
+func ResHandle(ctx context.Context, reschan chan *utils.PathDict) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -96,7 +96,7 @@ func UpdateDict(dicpath []string, dirroot string) {
 	DictMap := make(map[string][]string)
 
 	for _, res := range ResSlice {
-		DictMap[res.path.Tag] = append(DictMap[res.path.Tag], res.path.Path)
+		DictMap[res.Tag] = append(DictMap[res.Tag], res.Path)
 	}
 
 	for _, dic := range dicpath {
@@ -113,13 +113,13 @@ func UpdateDict(dicpath []string, dirroot string) {
 		bytes, err := ioutil.ReadFile(dic)
 
 		if err != nil {
-			if FileLogger != nil {
+			if err != nil {
 				FileLogger.Error(dic + " open failed")
 			}
 			continue
 		}
 		if err1 := json.Unmarshal(bytes, &OldDict); err1 != nil {
-			if FileLogger != nil {
+			if err1 != nil {
 				FileLogger.Error("Write json " + dic + " failed")
 			}
 			continue

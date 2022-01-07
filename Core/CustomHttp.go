@@ -103,7 +103,6 @@ func (custom *CustomClient) DoRequest(ctx context.Context, Url string, Para Addi
 	}
 
 	if Para.Mod == "host" {
-		request.Header.Set("test", "test")
 		request.Host = Para.Value
 	}
 
