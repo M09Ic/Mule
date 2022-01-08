@@ -11,7 +11,6 @@ import (
 )
 
 type ResponsePara struct {
-	ctx      context.Context
 	repchan  chan *Resp
 	wgs      *sync.WaitGroup
 	wdmap    map[string]*WildCard
@@ -33,16 +32,17 @@ type handledpath struct {
 	preHandleWord string
 }
 
-func AccessResponseWork(WorkPara *ResponsePara) {
+func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 	defer WorkPara.wgs.Done()
 	//result,err := custom.RunRequest(ctx, Url)
 
 	//TODO channel超时
 	for {
 		select {
-		case <-WorkPara.ctx.Done():
+		case <-ctx.Done():
 			return
-
+		case <-time.After(5 * time.Second):
+			return
 		case resp, ok := <-WorkPara.repchan:
 			if !ok {
 				return
@@ -85,7 +85,7 @@ func AccessResponseWork(WorkPara *ResponsePara) {
 
 					}
 					select {
-					case <-WorkPara.ctx.Done():
+					case <-ctx.Done():
 						return
 					default:
 						select {
@@ -123,7 +123,7 @@ func AccessResponseWork(WorkPara *ResponsePara) {
 							zap.String("Frameworks", fingeriden.Frameworks.ToString()))
 					}
 					select {
-					case <-WorkPara.ctx.Done():
+					case <-ctx.Done():
 						return
 					default:
 

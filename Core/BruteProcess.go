@@ -25,7 +25,6 @@ var RepChan = make(chan *Resp, 1000)
 var Block int
 
 type PoolPara struct {
-	ctx      context.Context
 	wordchan chan utils.PathDict
 	custom   *CustomClient
 	target   string
@@ -121,18 +120,17 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		//  开启线程池
 		ReqScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
 			CuPara := Para.(PoolPara)
-			AccessWork(&CuPara)
+			AccessWork(CurContext, &CuPara)
 		})
 
 		RepScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
 			CuPara := Para.(ResponsePara)
-			AccessResponseWork(&CuPara)
+			AccessResponseWork(CurContext, &CuPara)
 		})
 
 		var ReqWgs, RepWgs sync.WaitGroup
 
 		PrePara := PoolPara{
-			ctx:      CurContext,
 			wordchan: WordChan,
 			custom:   client,
 			target:   curtarget,
@@ -143,7 +141,6 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		cm := sync.Map{}
 
 		RespPre := ResponsePara{
-			ctx:      CurContext,
 			repchan:  RepChan,
 			wgs:      &RepWgs,
 			wdmap:    wildcardmap,
@@ -231,13 +228,13 @@ func MakeWordChan(alljson []utils.PathDict) chan utils.PathDict {
 	return WordChan
 }
 
-func AccessWork(WorkPara *PoolPara) {
+func AccessWork(ctx context.Context, WorkPara *PoolPara) {
 	defer WorkPara.wgs.Done()
 	//result,err := custom.RunRequest(ctx, Url)
 
 	for {
 		select {
-		case <-WorkPara.ctx.Done():
+		case <-ctx.Done():
 			return
 
 		case word, ok := <-WorkPara.wordchan:
@@ -267,7 +264,7 @@ func AccessWork(WorkPara *PoolPara) {
 				Value: PreHandleWord,
 			}
 
-			result, err := WorkPara.custom.RunRequest(WorkPara.ctx, WorkPara.target, add)
+			result, err := WorkPara.custom.RunRequest(ctx, WorkPara.target, add)
 
 			if err != nil {
 				// TODO 错误处理
@@ -285,7 +282,7 @@ func AccessWork(WorkPara *PoolPara) {
 
 			//RepChan <- &curresp
 			select {
-			case <-WorkPara.ctx.Done():
+			case <-ctx.Done():
 				return
 			default:
 				select {

@@ -31,7 +31,7 @@ func Compare30x(WdLoc string, Res string) (bool, error) {
 
 	ComRatio := strsim.Compare(HandleWd, HandleRes)
 
-	if ratio < ComRatio {
+	if ratio > ComRatio {
 		return true, nil
 	}
 
@@ -56,7 +56,7 @@ func Compare200(WdBody *[]byte, ResBody *[]byte) (bool, error) {
 	}
 	ComRatio := strsim.Compare(Wdstr, Restr)
 
-	if ratio < ComRatio {
+	if ratio > ComRatio {
 		return true, nil
 	}
 
