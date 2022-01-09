@@ -173,7 +173,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		case <-StopCh:
 			fmt.Println("break of close")
 			break
-		case <-time.After(time.Duration(Opts.Timeout+1) * time.Second):
+		case <-time.After(time.Duration(Opts.Timeout+2) * time.Second):
 			fmt.Println("break of time")
 			break
 		}

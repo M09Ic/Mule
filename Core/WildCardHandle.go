@@ -42,19 +42,7 @@ func Compare30x(WdLoc string, Res string) (bool, error) {
 func Compare200(WdBody *[]byte, ResBody *[]byte) (bool, error) {
 	ratio := 0.98
 
-	var Wdstr, Restr string
-	if len(*WdBody) >= 10000 {
-		Wdstr = string((*WdBody)[:10000])
-	} else {
-		Wdstr = string(*WdBody)
-	}
-
-	if len(*ResBody) >= 10000 {
-		Restr = string((*ResBody)[:10000])
-	} else {
-		Restr = string(*WdBody)
-	}
-	ComRatio := strsim.Compare(Wdstr, Restr)
+	ComRatio := strsim.Compare(string(*WdBody), string(*ResBody))
 
 	if ratio > ComRatio {
 		return true, nil

@@ -41,8 +41,6 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(5 * time.Second):
-			return
 		case resp, ok := <-WorkPara.repchan:
 			if !ok {
 				return

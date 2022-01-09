@@ -66,6 +66,7 @@ func (custom *CustomClient) RunRequest(ctx context.Context, Url string, Para Add
 	}
 
 	body, err := io.ReadAll(response.Body)
+
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,11 @@ func (custom *CustomClient) RunRequest(ctx context.Context, Url string, Para Add
 	result.StatusCode = response.StatusCode
 	result.Header = response.Header
 	result.Length = int64(len(body))
-	result.Body = body
+	if result.Length > 8192 {
+		result.Body = body[:8192]
+	} else {
+		result.Body = body
+	}
 
 	return &result, nil
 
