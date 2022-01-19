@@ -47,7 +47,11 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 			}
 			// 和资源不存在页面进行比较
 
-			resp.Hash = utils.Md5Hash(resp.resp.Body)
+			if resp.resp.Header.Get("Location") != "" {
+				resp.Hash = utils.Md5Hash(utils.BytesCombine(resp.resp.Body, []byte(resp.resp.Header.Get("Location"))))
+			} else {
+				resp.Hash = utils.Md5Hash(resp.resp.Body)
+			}
 
 			comres, _ := CustomCompare(WorkPara.wdmap, resp.finpath.preHandleWord, resp, WorkPara.cachemap)
 			//comres, err := CompareWildCard(WorkPara.wdmap["default"], result)

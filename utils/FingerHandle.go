@@ -69,8 +69,6 @@ func (f *Finger) Decode() {
 	if f.SendData_str != "" {
 		f.SendData = decode(f.SendData_str)
 	}
-	// todo
-	// regexp decode
 }
 
 func decode(s string) []byte {

@@ -18,6 +18,7 @@ type Options struct {
 	JsFinder   bool
 	Nolog      bool
 	NoUpdate   bool
+	Follow     bool
 	Transport  *http.Transport
 }
 
