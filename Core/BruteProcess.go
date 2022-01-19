@@ -6,9 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/panjf2000/ants"
-	"github.com/projectdiscovery/cdncheck"
-	"net"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -23,6 +20,7 @@ var CheckChan = make(chan struct{}, 10000)
 var SpiderWaitChan = make(chan string, 100)
 var RepChan = make(chan *Resp, 1000)
 var Block int
+var AllWildMap sync.Map
 
 type PoolPara struct {
 	wordchan chan utils.PathDict
@@ -40,10 +38,11 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 	//}
 	//pprof.StartCPUProfile(f)
 
-	taskroot, cancel := context.WithCancel(context.Background())
+	taskroot, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	var SpWgs sync.WaitGroup
+
 	//js探测
 	if Opts.JsFinder {
 		go SpiderResHandle(SpiderChan)
@@ -65,10 +64,23 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	}
 
+	FilterTarget(taskroot, client, Opts.Target, Opts.DirRoot)
+
 	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range, Opts.NoUpdate)
 
 	utils.Configloader()
 	for _, curtarget := range Opts.Target {
+
+		var wildcardmap map[string]*WildCard
+
+		if wd, ok := AllWildMap.Load(curtarget); !ok {
+			fmt.Println("cannot connect to " + curtarget)
+			continue
+		} else {
+			fmt.Println("Start brute " + curtarget)
+			wildcardmap = wd.(map[string]*WildCard)
+		}
+
 		CheckFlag = 0
 
 		//t1 := time.Now()
@@ -76,12 +88,6 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
 
-		wildcardmap, err := ScanPrepare(ctx, client, curtarget, Opts.DirRoot)
-
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
 		select {
 		case <-CheckChan:
 
@@ -90,21 +96,6 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 		case <-ResChan:
 		default:
-		}
-
-		// 加入cdn检测
-		r, _ := regexp.Compile("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}")
-		if len(r.Find([]byte(curtarget))) != 0 {
-			ipv4 := string(r.Find([]byte(curtarget)))
-			client, err := cdncheck.NewWithCache()
-			if err == nil {
-
-				if found, err := client.Check(net.ParseIP(ipv4)); found && err == nil {
-					fmt.Printf("%v is a part of cdn, so pass\n", ipv4)
-					continue
-				}
-			}
-
 		}
 
 		//读取字典返回管道

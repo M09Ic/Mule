@@ -22,6 +22,7 @@ var ResSlice []utils.PathDict
 var FileLogger *zap.Logger
 var ProBar *progressbar.ProgressBar
 var CheckFlag int
+var Format string
 
 //初始化log
 
@@ -46,7 +47,14 @@ func InitLogger(logfile string, nolog, nobanner bool) {
 		encoderConfig := zapcore.EncoderConfig{
 			MessageKey: "msg",
 		}
-		encoder := zapcore.NewJSONEncoder(encoderConfig)
+
+		var encoder zapcore.Encoder
+
+		if Format == "json" {
+			encoder = zapcore.NewJSONEncoder(encoderConfig)
+		} else {
+			encoder = zapcore.NewConsoleEncoder(encoderConfig)
+		}
 
 		//Core := zapcore.NewCore(encoder,zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout)), zapcore.DebugLevel)
 		core := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(writeSyncer), zapcore.DebugLevel)

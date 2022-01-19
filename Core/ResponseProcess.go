@@ -62,14 +62,18 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 					resp.path.Hits += 1
 
 					if FileLogger != nil {
-						FileLogger.Info("Success",
-							zap.String("Path", finpath),
-							zap.Int("Code", resp.resp.StatusCode),
-							zap.Int64("Length", resp.resp.Length),
-							zap.String("MMH3", fingeriden.Mmh3),
-							zap.String("MD5", fingeriden.Hash),
-							zap.String("SIM3", fingeriden.SimHash),
-							zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+						if Format == "json" {
+							FileLogger.Info("Success",
+								zap.String("Path", finpath),
+								zap.Int("Code", resp.resp.StatusCode),
+								zap.Int64("Length", resp.resp.Length),
+								zap.String("MMH3", fingeriden.Mmh3),
+								zap.String("MD5", fingeriden.Hash),
+								zap.String("SIM3", fingeriden.SimHash),
+								zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+						} else {
+							FileLogger.Info(fmt.Sprintf("Path: %s\tCode: %v\tLength: %v\t[Framework:%s]\n", finpath, resp.resp.StatusCode, resp.resp.Length, fingeriden.Frameworks.ToString()))
+						}
 					}
 					if !utils.Noconsole {
 						err := ProBar.Clear()
@@ -80,7 +84,6 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
 						fmt.Printf("Path: %s\tCode: %s\tLength: %s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
-
 					}
 					select {
 					case <-ctx.Done():
@@ -110,15 +113,20 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						if err != nil {
 							return
 						}
-						FileLogger.Info("Success",
-							zap.String("IP", resp.finpath.target),
-							zap.String("Path", resp.finpath.preHandleWord),
-							zap.Int("Code", resp.resp.StatusCode),
-							zap.Int64("Length", resp.resp.Length),
-							zap.String("MMH3", fingeriden.Mmh3),
-							zap.String("MD5", fingeriden.Hash),
-							zap.String("SIM3", fingeriden.SimHash),
-							zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+						if Format == "json" {
+							FileLogger.Info("Success",
+								zap.String("IP", resp.finpath.target),
+								zap.String("Path", resp.finpath.preHandleWord),
+								zap.Int("Code", resp.resp.StatusCode),
+								zap.Int64("Length", resp.resp.Length),
+								zap.String("MMH3", fingeriden.Mmh3),
+								zap.String("MD5", fingeriden.Hash),
+								zap.String("SIM3", fingeriden.SimHash),
+								zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+						} else {
+							FileLogger.Info(fmt.Sprintf("IP: %v \tHost: %v \t Code:%v \t Length:%v", resp.finpath.target, resp.finpath.preHandleWord, resp.resp.StatusCode, resp.resp.Length))
+						}
+
 					}
 					select {
 					case <-ctx.Done():

@@ -62,7 +62,7 @@ func init() {
 	BruteCmd.Flags().IntP("block", "b", 10, "the number of auto stop brute")
 	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
 	BruteCmd.Flags().BoolP("js", "j", false, "finder js from page")
-	BruteCmd.Flags().StringP("format", "", "raw", "the format of output")
+	BruteCmd.Flags().StringP("format", "", "json", "the format of output")
 	BruteCmd.Flags().BoolP("nolog", "", false, "don't produce log")
 	BruteCmd.Flags().BoolP("noupdate", "", false, "don't update dict to json")
 	BruteCmd.Flags().BoolP("noconsole", "", false, "dont output result in console")
@@ -196,6 +196,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value noconsole: %w", err)
+	}
+
+	Core.Format, err = cmd.Flags().GetString("format")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value format: %w", err)
 	}
 
 	// 处理输入的header
