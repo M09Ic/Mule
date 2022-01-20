@@ -67,6 +67,7 @@ func init() {
 	BruteCmd.Flags().BoolP("noupdate", "", false, "don't update dict to json")
 	BruteCmd.Flags().BoolP("noconsole", "", false, "dont output result in console")
 	BruteCmd.Flags().BoolP("nobanner", "", false, "dont output banner in console")
+	BruteCmd.Flags().BoolP("follow", "", false, "follow the 30x or not")
 
 }
 
@@ -285,6 +286,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
+	}
+
+	opts.Follow, err = cmd.Flags().GetBool("follow")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for follow: %w", err)
 	}
 
 	nobanner, err := cmd.Flags().GetBool("nobanner")

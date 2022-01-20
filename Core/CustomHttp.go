@@ -30,7 +30,6 @@ type Additional struct {
 
 func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 
-
 	crfunc := CheckRedFunc(Opt.Follow)
 
 	custom.CuClient = &http.Client{
@@ -47,22 +46,25 @@ func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 	return custom, nil
 }
 
-
 func CheckRedFunc(follow bool) func(req *http.Request, via []*http.Request) error {
-	if follow{
+	if !follow {
+
 		return func(req *http.Request, via []*http.Request) error {
-			return nil
+
+			if req.URL.String() == via[len(via)-1].URL.String()+"/" {
+				return nil
+			}
+			return http.ErrUseLastResponse
 		}
 	}
 	return func(req *http.Request, via []*http.Request) error {
 		if len(via) >= 5 {
 
-			return errors.New("stopped after 10 redirects")
+			return errors.New("stopped after 5 redirects")
 		}
 		return nil
 	}
 }
-
 
 func (custom *CustomClient) RunRequest(ctx context.Context, Url string, Para Additional) (*ReqRes, error) {
 	//defer utils.TimeCost()()

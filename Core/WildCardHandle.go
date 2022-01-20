@@ -88,6 +88,8 @@ func CompareWildCard(wd *WildCard, result *ReqRes) (bool, error) {
 
 func CustomCompare(wdmap map[string]*WildCard, path string, result *Resp, cachemap *sync.Map) (bool, error) {
 
+	// 修改的false的原因在于如果是重复的页面出现可以直接说明目标页面不存在了，或是重复的页面，一次来解决二级目录问题
+	// TODO 是否存在一些爆破需求是目标界面为500这样的通用报错
 	if res, ok := cachemap.Load(result.Hash); ok {
 		//fmt.Println("use cache")
 		return res.(bool), nil
