@@ -14,8 +14,6 @@ import (
 var PathLength int
 var Countchan = make(chan struct{}, 10000)
 
-var CurCancel context.CancelFunc
-var CurContext context.Context
 var CheckChan = make(chan struct{}, 10000)
 var SpiderWaitChan = make(chan string, 100)
 var RepChan = make(chan *Resp, 1000)
@@ -24,6 +22,7 @@ var AllWildMap sync.Map
 
 type PoolPara struct {
 	wordchan chan utils.PathDict
+	StopCh   chan struct{}
 	custom   *CustomClient
 	target   string
 	wgs      *sync.WaitGroup
@@ -84,19 +83,14 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		CheckFlag = 0
 
 		//t1 := time.Now()
-		CurContext, CurCancel = context.WithCancel(taskroot)
+		CurContext, CurCancel := context.WithCancel(taskroot)
 
 		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
 
-		select {
-		case <-CheckChan:
-
-		case <-Countchan:
-		case <-RepChan:
-
-		case <-ResChan:
-		default:
-		}
+		Countchan = make(chan struct{}, 10000)
+		RepChan = make(chan *Resp, 1000)
+		ResChan = make(chan *utils.PathDict, 1000)
+		CheckChan = make(chan struct{}, 10000)
 
 		//读取字典返回管道
 		WordChan := MakeWordChan(alljson)
@@ -120,12 +114,13 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 		})
 
 		var ReqWgs, RepWgs sync.WaitGroup
-
+		var StopCh_R = make(chan struct{})
 		PrePara := PoolPara{
 			wordchan: WordChan,
 			custom:   client,
 			target:   curtarget,
 			wgs:      &ReqWgs,
+			StopCh:   StopCh_R,
 			wdmap:    wildcardmap,
 		}
 
@@ -137,6 +132,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 			wdmap:    wildcardmap,
 			cachemap: &cm,
 			mod:      Opts.Mod,
+			StopCh:   StopCh_R,
 			jsfinder: Opts.JsFinder,
 		}
 
@@ -230,6 +226,7 @@ func AccessWork(ctx context.Context, WorkPara *PoolPara) {
 
 		case word, ok := <-WorkPara.wordchan:
 			if !ok {
+				CloseStopch(WorkPara.StopCh)
 				return
 			}
 
@@ -287,4 +284,15 @@ func AccessWork(ctx context.Context, WorkPara *PoolPara) {
 		}
 	}
 
+}
+
+func CloseStopch(stop chan struct{}) {
+	defer func() {
+		if recover() != nil {
+			// 返回值可以被修改
+			// 在一个延时函数的调用中。
+		}
+	}()
+	close(stop)
+	return
 }

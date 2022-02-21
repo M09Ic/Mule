@@ -12,6 +12,7 @@ import (
 
 type ResponsePara struct {
 	repchan  chan *Resp
+	StopCh   chan struct{}
 	wgs      *sync.WaitGroup
 	wdmap    map[string]*WildCard
 	cachemap *sync.Map
@@ -40,6 +41,9 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 	for {
 		select {
 		case <-ctx.Done():
+			return
+
+		case <-WorkPara.StopCh:
 			return
 		case resp, ok := <-WorkPara.repchan:
 			if !ok {
