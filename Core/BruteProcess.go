@@ -6,27 +6,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/panjf2000/ants"
-	"strings"
 	"sync"
 	"time"
 )
 
 var PathLength int
-var Countchan = make(chan struct{}, 10000)
-
-var CheckChan = make(chan struct{}, 10000)
 var SpiderWaitChan = make(chan string, 100)
-var RepChan = make(chan *Resp, 1000)
 var Block int
 var AllWildMap sync.Map
 
 type PoolPara struct {
-	wordchan chan utils.PathDict
-	StopCh   chan struct{}
-	custom   *CustomClient
-	target   string
-	wgs      *sync.WaitGroup
-	wdmap    map[string]*WildCard
+	wordchan  chan utils.PathDict
+	StopCh    chan struct{}
+	Countchan chan struct{}
+	CheckChan chan struct{}
+	RepChan   chan *Resp
+	custom    *CustomClient
+	target    string
+	wgs       *sync.WaitGroup
+	wdmap     map[string]*WildCard
+}
+
+type tarwp struct {
+	wildmap map[string]*WildCard
+	target  string
 }
 
 func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
@@ -40,159 +43,204 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 	taskroot, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	var SpWgs sync.WaitGroup
+	//var SpWgs sync.WaitGroup
 
-	//js探测
-	if Opts.JsFinder {
-		go SpiderResHandle(SpiderChan)
-		SpiderScanPool, _ := ants.NewPoolWithFunc(10, func(Para interface{}) {
-			defer SpWgs.Done()
-			CuPara := Para.(string)
-			newcolly := NewCollyClient(&Opts)
-			newcolly.Start(CuPara)
-			newcolly.NormalCollector.Wait()
-			newcolly.LinkFinderCollector.Wait()
-		})
-
-		go func(Spchan chan string) {
-			for i := range Spchan {
-				SpWgs.Add(1)
-				_ = SpiderScanPool.Invoke(i)
-			}
-		}(SpiderWaitChan)
-
-	}
+	////js探测
+	//if Opts.JsFinder {
+	//	go SpiderResHandle(SpiderChan)
+	//	SpiderScanPool, _ := ants.NewPoolWithFunc(10, func(Para interface{}) {
+	//		defer SpWgs.Done()
+	//		CuPara := Para.(string)
+	//		newcolly := NewCollyClient(&Opts)
+	//		newcolly.Start(CuPara)
+	//		newcolly.NormalCollector.Wait()
+	//		newcolly.LinkFinderCollector.Wait()
+	//	})
+	//
+	//	go func(Spchan chan string) {
+	//		for i := range Spchan {
+	//			SpWgs.Add(1)
+	//			_ = SpiderScanPool.Invoke(i)
+	//		}
+	//	}(SpiderWaitChan)
+	//
+	//}
 
 	FilterTarget(taskroot, client, Opts.Target, Opts.DirRoot)
 
 	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range, Opts.NoUpdate)
 
+	var wg sync.WaitGroup
+	TaskPool, _ := ants.NewPoolWithFunc(Opts.PoolSize, func(Para interface{}) {
+		defer wg.Done()
+		CuPara := Para.(WorkPara)
+		StartProcess(taskroot, &CuPara)
+	})
 	utils.Configloader()
-	for _, curtarget := range Opts.Target {
+	var targetwd []tarwp
 
+	for _, curtarget := range Opts.Target {
 		var wildcardmap map[string]*WildCard
+
+		var tw tarwp
 
 		if wd, ok := AllWildMap.Load(curtarget); !ok {
 			fmt.Println("cannot connect to " + curtarget)
 			continue
 		} else {
-			fmt.Println("Start brute " + curtarget)
 			wildcardmap = wd.(map[string]*WildCard)
-		}
-
-		CheckFlag = 0
-
-		//t1 := time.Now()
-		CurContext, CurCancel := context.WithCancel(taskroot)
-
-		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
-
-		Countchan = make(chan struct{}, 10000)
-		RepChan = make(chan *Resp, 1000)
-		ResChan = make(chan *utils.PathDict, 1000)
-		CheckChan = make(chan struct{}, 10000)
-
-		//读取字典返回管道
-		WordChan := MakeWordChan(alljson)
-		//检测成功后初始化各类插件
-		// waf检测
-		go TimingCheck(CurContext, client, curtarget, wildcardmap["default"], CheckChan, CurCancel)
-		//进度条
-		if !Opts.Nolog {
-			go BruteProcessBar(CurContext, PathLength, curtarget, Countchan)
-		}
-
-		//  开启线程池
-		ReqScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
-			CuPara := Para.(PoolPara)
-			AccessWork(CurContext, &CuPara)
-		})
-
-		RepScanPool, _ := ants.NewPoolWithFunc(Opts.Thread, func(Para interface{}) {
-			CuPara := Para.(ResponsePara)
-			AccessResponseWork(CurContext, &CuPara)
-		})
-
-		var ReqWgs, RepWgs sync.WaitGroup
-		var StopCh_R = make(chan struct{})
-		PrePara := PoolPara{
-			wordchan: WordChan,
-			custom:   client,
-			target:   curtarget,
-			wgs:      &ReqWgs,
-			StopCh:   StopCh_R,
-			wdmap:    wildcardmap,
-		}
-
-		cm := sync.Map{}
-
-		RespPre := ResponsePara{
-			repchan:  RepChan,
-			wgs:      &RepWgs,
-			wdmap:    wildcardmap,
-			cachemap: &cm,
-			mod:      Opts.Mod,
-			StopCh:   StopCh_R,
-			jsfinder: Opts.JsFinder,
-		}
-
-		//开启结果协程
-		go ResHandle(CurContext, ResChan)
-
-		for i := 0; i < Opts.Thread; i++ {
-			ReqWgs.Add(1)
-			RepWgs.Add(1)
-			_ = RepScanPool.Invoke(RespPre)
-			_ = ReqScanPool.Invoke(PrePara)
-		}
-
-		ReqWgs.Wait()
-		ReqScanPool.Release()
-
-		StopCh := make(chan struct{})
-
-		go func() {
-			RepWgs.Wait()
-			close(StopCh)
-		}()
-
-		select {
-		case <-StopCh:
-			fmt.Println("break of close")
-			break
-		case <-time.After(time.Duration(Opts.Timeout+2) * time.Second):
-			fmt.Println("break of time")
-			break
-		}
-
-		RepScanPool.Release()
-		if Opts.JsFinder {
-			fmt.Println("扫描结束，请等待linkfinder运行结束")
-			time.Sleep(500 * time.Millisecond)
-			SpWgs.Wait()
-		}
-
-		if Opts.JsFinder {
-			OutputLinkFinder()
-		}
-		if Opts.Nolog {
-			JsonRes, _ := json.Marshal(ResSlice)
-			fmt.Println(string(JsonRes))
-		}
-		if !Opts.NoUpdate {
-			UpdateDict(Opts.Dictionary, Opts.DirRoot)
-		}
-		//pprof.StopCPUProfile()
-		//f.Close()
-		select {
-		case <-CurContext.Done():
-			continue
-		default:
-			CurCancel()
+			tw.target = curtarget
+			tw.wildmap = wildcardmap
+			targetwd = append(targetwd, tw)
 		}
 	}
 
+	if len(targetwd) > 1 {
+		Opts.Thread = Opts.Thread / 2
+	}
+
+	for _, curtargetwd := range targetwd {
+
+		fmt.Println("Start brute " + curtargetwd.target)
+
+		wp := WorkPara{
+			alljson: &alljson,
+			Opts:    Opts,
+			client:  client,
+			target:  curtargetwd.target,
+			wdmap:   curtargetwd.wildmap,
+		}
+
+		wg.Add(1)
+		_ = TaskPool.Invoke(wp)
+
+		//t1 := time.Now()
+
+		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
+
+	}
+	wg.Wait()
 	return nil
+}
+
+type WorkPara struct {
+	alljson *[]utils.PathDict
+	Opts    Options
+	client  *CustomClient
+	target  string
+	wdmap   map[string]*WildCard
+}
+
+func StartProcess(ctx context.Context, wp *WorkPara) {
+	//var Countchan = make(chan struct{}, 1000)
+	var RepChan = make(chan *Resp, 1000)
+	var ResChan = make(chan *utils.PathDict, 1000)
+	var CheckChan = make(chan struct{}, 1000)
+	CurContext, CurCancel := context.WithCancel(ctx)
+
+	//读取字典返回管道
+	WordChan := MakeWordChan(*wp.alljson)
+	//检测成功后初始化各类插件
+	// waf检测
+	go TimingCheck(CurContext, wp.client, wp.target, wp.wdmap["default"], CheckChan, CurCancel)
+	//进度条
+	//if !wp.Opts.Nolog {
+	//	go BruteProcessBar(CurContext, PathLength, wp.target, Countchan)
+	//}
+
+	//  开启线程池
+	ReqScanPool, _ := ants.NewPoolWithFunc(wp.Opts.Thread, func(Para interface{}) {
+		CuPara := Para.(PoolPara)
+		AccessWork(CurContext, &CuPara)
+	})
+
+	RepScanPool, _ := ants.NewPoolWithFunc(wp.Opts.Thread, func(Para interface{}) {
+		CuPara := Para.(ResponsePara)
+		AccessResponseWork(CurContext, &CuPara)
+	})
+
+	var ReqWgs, RepWgs sync.WaitGroup
+	var StopCh_R = make(chan struct{})
+	PrePara := PoolPara{
+		wordchan:  WordChan,
+		RepChan:   RepChan,
+		CheckChan: CheckChan,
+		//Countchan: Countchan,
+		custom: wp.client,
+		target: wp.target,
+		wgs:    &ReqWgs,
+		StopCh: StopCh_R,
+		wdmap:  wp.wdmap,
+	}
+
+	cm := sync.Map{}
+
+	RespPre := ResponsePara{
+		repchan:  RepChan,
+		ResChan:  ResChan,
+		wgs:      &RepWgs,
+		wdmap:    wp.wdmap,
+		cachemap: &cm,
+		mod:      wp.Opts.Mod,
+		StopCh:   StopCh_R,
+		jsfinder: wp.Opts.JsFinder,
+	}
+
+	//开启结果协程
+	go ResHandle(CurContext, ResChan)
+
+	for i := 0; i < wp.Opts.Thread; i++ {
+		ReqWgs.Add(1)
+		RepWgs.Add(1)
+		_ = RepScanPool.Invoke(RespPre)
+		_ = ReqScanPool.Invoke(PrePara)
+	}
+
+	ReqWgs.Wait()
+	ReqScanPool.Release()
+
+	StopCh := make(chan struct{})
+
+	go func() {
+		RepWgs.Wait()
+		close(StopCh)
+	}()
+
+	select {
+	case <-StopCh:
+		fmt.Printf("%v finsihed\n", wp.target)
+
+	case <-time.After(time.Duration(wp.Opts.Timeout+2) * time.Second):
+		fmt.Printf("%v break of time\n", wp.target)
+
+	}
+
+	RepScanPool.Release()
+	//if Opts.JsFinder {
+	//	fmt.Println("扫描结束，请等待linkfinder运行结束")
+	//	time.Sleep(500 * time.Millisecond)
+	//	SpWgs.Wait()
+	//}
+	//
+	//if Opts.JsFinder {
+	//	OutputLinkFinder()
+	//}
+	if wp.Opts.Nolog {
+		JsonRes, _ := json.Marshal(ResSlice)
+		fmt.Println(string(JsonRes))
+	}
+	if !wp.Opts.NoUpdate {
+		UpdateDict(wp.Opts.Dictionary, wp.Opts.DirRoot)
+	}
+	//pprof.StopCPUProfile()
+	//f.Close()
+	select {
+	case <-CurContext.Done():
+		return
+	default:
+		CurCancel()
+		return
+	}
 }
 
 func MakeWordChan(alljson []utils.PathDict) chan utils.PathDict {
@@ -213,86 +261,4 @@ func MakeWordChan(alljson []utils.PathDict) chan utils.PathDict {
 	}()
 
 	return WordChan
-}
-
-func AccessWork(ctx context.Context, WorkPara *PoolPara) {
-	defer WorkPara.wgs.Done()
-	//result,err := custom.RunRequest(ctx, Url)
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-
-		case word, ok := <-WorkPara.wordchan:
-			if !ok {
-				CloseStopch(WorkPara.StopCh)
-				return
-			}
-
-			if !utils.Nolog {
-				Countchan <- struct{}{}
-			}
-
-			CheckChan <- struct{}{}
-
-			path := word.Path
-
-			PreHandleWord := strings.TrimSpace(path)
-			if strings.HasPrefix(PreHandleWord, "#") || len(PreHandleWord) == 0 {
-				continue
-			}
-
-			if !strings.HasPrefix(PreHandleWord, "/") {
-				PreHandleWord = "/" + PreHandleWord
-			}
-
-			add := Additional{
-				Mod:   WorkPara.custom.Mod,
-				Value: PreHandleWord,
-			}
-
-			result, err := WorkPara.custom.RunRequest(ctx, WorkPara.target, add)
-
-			if err != nil {
-				// TODO 错误处理
-				continue
-			}
-
-			curresp := Resp{
-				resp: result,
-				finpath: handledpath{
-					target:        WorkPara.target,
-					preHandleWord: PreHandleWord,
-				},
-				path: word,
-			}
-
-			//RepChan <- &curresp
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				select {
-				case RepChan <- &curresp:
-				case <-time.After(2 * time.Second):
-					return
-				}
-
-			}
-
-		}
-	}
-
-}
-
-func CloseStopch(stop chan struct{}) {
-	defer func() {
-		if recover() != nil {
-			// 返回值可以被修改
-			// 在一个延时函数的调用中。
-		}
-	}()
-	close(stop)
-	return
 }

@@ -15,8 +15,6 @@ import (
 	"time"
 )
 
-var ResChan = make(chan *utils.PathDict, 1000)
-
 var ResSlice []utils.PathDict
 
 var FileLogger *zap.Logger

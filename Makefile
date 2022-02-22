@@ -1,6 +1,6 @@
 # Binary name
 BINARY= Mule
-VERSION = 1.2.2beta
+VERSION = 1.2.4beta
 # Builds the project
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./main.go
@@ -31,7 +31,6 @@ release-upx:
 		CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -ldflags "-s -w" -o ./bin/Mule-win32-${VERSION}.exe ./main.go
 		upx -2 ./bin/Mule-win32-${VERSION}.exe
 		cp ./ReadMe.md ./bin/
-		cp -r ./Data ./bin/
 		#compress
 		tar cvf Mule-${VERSION}.tar.gz bin/*
 # Cleans our projects: deletes binaries

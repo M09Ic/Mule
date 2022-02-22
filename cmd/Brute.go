@@ -57,6 +57,7 @@ func init() {
 	BruteCmd.Flags().StringArrayP("Headers", "H", []string{}, "Request's Headers")
 	BruteCmd.Flags().StringP("range", "r", "0", "range of dict")
 	BruteCmd.Flags().StringP("Cookie", "C", "", "Request's Cookie")
+	BruteCmd.Flags().IntP("PoolSize", "P", 4, "the size of request pool")
 	BruteCmd.Flags().IntP("timeout", "", 5, "request's timeout")
 	BruteCmd.Flags().IntP("Thread", "t", 50, "the size of thread pool")
 	BruteCmd.Flags().IntP("block", "b", 10, "the number of auto stop brute")
@@ -266,7 +267,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	if LogFile == "" {
 		fileprex = strings.Replace(fileprex, "://", "_", -1)
 		fileprex = strings.Replace(fileprex, "/", "_", -1)
-		LogFile = "./log/" + fileprex + "_" + defaultstring + ".log"
+		LogFile = "./" + fileprex + "_" + defaultstring + ".log"
 	}
 
 	opts.Nolog, err = cmd.Flags().GetBool("nolog")
@@ -274,6 +275,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	utils.Nolog = opts.Nolog
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
+	}
+
+	opts.PoolSize, err = cmd.Flags().GetInt("PoolSize")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for PoolSize: %w", err)
 	}
 
 	opts.JsFinder, err = cmd.Flags().GetBool("js")

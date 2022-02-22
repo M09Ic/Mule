@@ -9,6 +9,7 @@ type Options struct {
 	Timeout    int
 	Headers    []HTTPHeader
 	Dictionary []string
+	PoolSize   int
 	DirRoot    string
 	Range      string
 	Target     []string

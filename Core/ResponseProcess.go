@@ -12,6 +12,7 @@ import (
 
 type ResponsePara struct {
 	repchan  chan *Resp
+	ResChan  chan *utils.PathDict
 	StopCh   chan struct{}
 	wgs      *sync.WaitGroup
 	wdmap    map[string]*WildCard
@@ -76,29 +77,29 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 								zap.Int("Code", resp.resp.StatusCode),
 								zap.Int64("Length", resp.resp.Length),
 								zap.String("MMH3", fingeriden.Mmh3),
-								zap.String("MD5", fingeriden.Hash),
+								zap.String("MD5", resp.Hash),
 								zap.String("SIM3", fingeriden.SimHash),
 								zap.String("Frameworks", fingeriden.Frameworks.ToString()))
 						} else {
-							FileLogger.Info(fmt.Sprintf("Path: %s\tCode: %v\tLength: %v\t[Framework:%s]\n", finpath, resp.resp.StatusCode, resp.resp.Length, fingeriden.Frameworks.ToString()))
+							FileLogger.Info(fmt.Sprintf("Path: %s\t%v\t%v\t[Framework:%s]\n", finpath, resp.resp.StatusCode, resp.resp.Length, fingeriden.Frameworks.ToString()))
 						}
 					}
 					if !utils.Noconsole {
-						err := ProBar.Clear()
-						if err != nil {
-							return
-						}
+						//err := ProBar.Clear()
+						//if err != nil {
+						//	return
+						//}
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
-						fmt.Printf("Path: %s\tCode: %s\tLength: %s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
+						fmt.Printf("Path: %s\t%s\t%s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
 					}
 					select {
 					case <-ctx.Done():
 						return
 					default:
 						select {
-						case ResChan <- &resp.path:
+						case WorkPara.ResChan <- &resp.path:
 							continue
 						case <-time.After(5 * time.Second):
 							return
@@ -112,7 +113,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
-						fmt.Printf("IP: %s \tHost: %s \t Code:%s \t Length:%s\n", cy(resp.finpath.target), blue(resp.finpath.preHandleWord), cy(resp.resp.StatusCode), red(resp.resp.Length))
+						fmt.Printf("IP: %s \tHost: %s \t%s\t%s\n", cy(resp.finpath.target), blue(resp.finpath.preHandleWord), cy(resp.resp.StatusCode), red(resp.resp.Length))
 					}
 					resp.path.Hits += 1
 					if FileLogger != nil {
@@ -132,7 +133,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 								zap.String("SIM3", fingeriden.SimHash),
 								zap.String("Frameworks", fingeriden.Frameworks.ToString()))
 						} else {
-							FileLogger.Info(fmt.Sprintf("IP: %v \tHost: %v \t Code:%v \t Length:%v", resp.finpath.target, resp.finpath.preHandleWord, resp.resp.StatusCode, resp.resp.Length))
+							FileLogger.Info(fmt.Sprintf("IP: %v \tHost: %v\t%v\t%v", resp.finpath.target, resp.finpath.preHandleWord, resp.resp.StatusCode, resp.resp.Length))
 						}
 
 					}
@@ -142,7 +143,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 					default:
 
 						select {
-						case ResChan <- &resp.path:
+						case WorkPara.ResChan <- &resp.path:
 						case <-time.After(5 * time.Second):
 							return
 						}
