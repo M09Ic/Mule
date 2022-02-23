@@ -3,7 +3,6 @@ package Core
 import (
 	"Mule/utils"
 	"context"
-	"fmt"
 	"github.com/antlabs/strsim"
 	"path/filepath"
 	"strings"
@@ -90,9 +89,12 @@ func CustomCompare(wdmap map[string]*WildCard, path string, result *Resp, cachem
 
 	// 修改的false的原因在于如果是重复的页面出现可以直接说明目标页面不存在了，或是重复的页面，一次来解决二级目录问题
 	// TODO 是否存在一些爆破需求是目标界面为500这样的通用报错
-	if res, ok := cachemap.Load(result.Hash); ok {
-		//fmt.Println("use cache")
-		return res.(bool), nil
+
+	if !(result.resp.StatusCode >= 403 && result.resp.StatusCode <= 503) {
+		if _, ok := cachemap.Load(result.Hash); ok {
+			//fmt.Println("use cache")
+			return false, nil
+		}
 	}
 
 	for key := range wdmap {
@@ -101,6 +103,9 @@ func CustomCompare(wdmap map[string]*WildCard, path string, result *Resp, cachem
 		} else {
 			if strings.Contains(path, key) {
 				res, err := CompareWildCard(wdmap[key], result.resp)
+				if result.resp.StatusCode >= 403 && result.resp.StatusCode <= 503 {
+					return res, err
+				}
 				cachemap.Store(result.Hash, res)
 				return res, err
 			}
@@ -168,8 +173,11 @@ func GenWildCardMap(ctx context.Context, client *CustomClient, random string, ta
 				resmap["default"] = wd
 
 			} else if !strings.Contains(ex, "$$") {
-				fmt.Printf("%s don't have symbol $$, please check\n", ex)
-				continue
+				wd_tmp := WildCard{
+					StatusCode: 403,
+					Type:       3,
+				}
+				resmap[ex[1:]] = &wd_tmp
 			} else {
 				Testpath = strings.Replace(ex, "$$", random, 1)
 				wd, err = GenWd(ctx, client, target, Testpath)

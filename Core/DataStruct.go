@@ -5,22 +5,23 @@ import (
 )
 
 type Options struct {
-	Thread     int
-	Timeout    int
-	Headers    []HTTPHeader
-	Dictionary []string
-	PoolSize   int
-	DirRoot    string
-	Range      string
-	Target     []string
-	Cookie     string
-	Method     string
-	Mod        string
-	JsFinder   bool
-	Nolog      bool
-	NoUpdate   bool
-	Follow     bool
-	Transport  *http.Transport
+	Thread      int
+	Timeout     int
+	Headers     []HTTPHeader
+	Dictionary  []string
+	PoolSize    int
+	DirRoot     string
+	Range       string
+	Target      []string
+	Cookie      string
+	Method      string
+	Mod         string
+	TargetRange string
+	JsFinder    bool
+	Nolog       bool
+	NoUpdate    bool
+	Follow      bool
+	Transport   *http.Transport
 }
 
 type ReqRes struct {

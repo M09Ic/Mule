@@ -33,9 +33,8 @@ func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 	crfunc := CheckRedFunc(Opt.Follow)
 
 	custom.CuClient = &http.Client{
-		Transport: Opt.Transport,
-		Timeout:   time.Second * time.Duration(Opt.Timeout),
-
+		Transport:     Opt.Transport,
+		Timeout:       time.Second * time.Duration(Opt.Timeout),
 		CheckRedirect: crfunc,
 	}
 

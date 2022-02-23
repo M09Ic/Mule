@@ -75,9 +75,10 @@ func TimingCheck(ctx context.Context, client *CustomClient, target string, wd *W
 
 				if CancelFlag >= Block {
 					FileLogger.Error("failed",
-						zap.String("Error", target+"have been blocked"))
+						zap.String("Error_target", target),
+						zap.Int("Error_item", CheckFlag))
 					//暂时block报错输出
-					fmt.Printf("\nbad luck, you have been blocked %s, there is a waf or check your network\n", target)
+					fmt.Printf("\nbad luck, you have been blocked %s, now item %v\n", target, CheckFlag)
 					ctxcancel()
 				}
 			}

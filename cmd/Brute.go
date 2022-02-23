@@ -60,7 +60,7 @@ func init() {
 	BruteCmd.Flags().IntP("PoolSize", "P", 4, "the size of request pool")
 	BruteCmd.Flags().IntP("timeout", "", 5, "request's timeout")
 	BruteCmd.Flags().IntP("Thread", "t", 50, "the size of thread pool")
-	BruteCmd.Flags().IntP("block", "b", 10, "the number of auto stop brute")
+	BruteCmd.Flags().IntP("block", "b", 5, "the number of auto stop brute")
 	BruteCmd.Flags().IntSlice("blacklist", []int{}, "the black list of statuscode")
 	BruteCmd.Flags().BoolP("js", "j", false, "finder js from page")
 	BruteCmd.Flags().StringP("format", "", "json", "the format of output")
@@ -69,6 +69,7 @@ func init() {
 	BruteCmd.Flags().BoolP("noconsole", "", false, "dont output result in console")
 	BruteCmd.Flags().BoolP("nobanner", "", false, "dont output banner in console")
 	BruteCmd.Flags().BoolP("follow", "", false, "follow the 30x or not")
+	BruteCmd.Flags().StringP("targetrange", "", "0", "target range")
 
 }
 
@@ -175,8 +176,18 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	opts.Range, err = cmd.Flags().GetString("range")
 
 	if err != nil {
+		return nil, fmt.Errorf("invalid value for dict range: %w", err)
+	}
+
+	opts.TargetRange, err = cmd.Flags().GetString("targetrange")
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for target range: %w", err)
+	}
+
+	if err != nil {
 		return nil, fmt.Errorf("invalid value for dictionary: %w", err)
 	}
+
 	defslice := utils.GetDefaultList(defaultstring)
 
 	opts.Dictionary = append(opts.Dictionary, defslice...)
@@ -311,9 +322,8 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
-		MaxIdleConns:        1000,
-		MaxIdleConnsPerHost: 100,
-		//DisableKeepAlives: true,
+		MaxIdleConns:        opts.PoolSize * opts.Thread,
+		MaxIdleConnsPerHost: opts.Thread,
 	}
 
 	Core.InitLogger(LogFile, opts.Nolog, nobanner)

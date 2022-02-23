@@ -17,7 +17,6 @@ func AccessWork(ctx context.Context, WorkPara *PoolPara) {
 
 		case word, ok := <-WorkPara.wordchan:
 			if !ok {
-				CloseStopch(WorkPara.StopCh)
 				return
 			}
 
@@ -59,7 +58,6 @@ func AccessWork(ctx context.Context, WorkPara *PoolPara) {
 				path: word,
 			}
 
-			//RepChan <- &curresp
 			select {
 			case <-ctx.Done():
 				return

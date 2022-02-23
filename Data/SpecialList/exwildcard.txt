@@ -9,3 +9,5 @@
 /$$.sql
 /$$.conf
 /$$.bin
+/.htaccess
+/.htpasswd

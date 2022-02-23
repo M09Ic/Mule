@@ -48,6 +48,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 			return
 		case resp, ok := <-WorkPara.repchan:
 			if !ok {
+				CloseStopch(WorkPara.StopCh)
 				return
 			}
 			// 和资源不存在页面进行比较
@@ -66,9 +67,11 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 				case "default":
 					finpath := resp.finpath.target + resp.finpath.preHandleWord
 					resp.Alivepath = finpath
+					temp := resp.Hash
 					fingeriden := identifyResp(resp.resp)
 					resp.IdentifyRes = fingeriden
 					resp.path.Hits += 1
+					fingeriden.Hash = temp
 
 					if FileLogger != nil {
 						if Format == "json" {
@@ -77,7 +80,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 								zap.Int("Code", resp.resp.StatusCode),
 								zap.Int64("Length", resp.resp.Length),
 								zap.String("MMH3", fingeriden.Mmh3),
-								zap.String("MD5", resp.Hash),
+								zap.String("MD5", fingeriden.Hash),
 								zap.String("SIM3", fingeriden.SimHash),
 								zap.String("Frameworks", fingeriden.Frameworks.ToString()))
 						} else {

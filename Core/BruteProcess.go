@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/panjf2000/ants"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -65,6 +67,8 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 	//	}(SpiderWaitChan)
 	//
 	//}
+
+	Opts.Target = GetRange(Opts.TargetRange, Opts.Target)
 
 	FilterTarget(taskroot, client, Opts.Target, Opts.DirRoot)
 
@@ -153,8 +157,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 		CuPara := Para.(PoolPara)
 		AccessWork(CurContext, &CuPara)
 	})
-
-	RepScanPool, _ := ants.NewPoolWithFunc(wp.Opts.Thread, func(Para interface{}) {
+	RepScanPool, _ := ants.NewPoolWithFunc(wp.Opts.Thread*2, func(Para interface{}) {
 		CuPara := Para.(ResponsePara)
 		AccessResponseWork(CurContext, &CuPara)
 	})
@@ -191,16 +194,22 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 
 	for i := 0; i < wp.Opts.Thread; i++ {
 		ReqWgs.Add(1)
-		RepWgs.Add(1)
+		RepWgs.Add(2)
+		_ = RepScanPool.Invoke(RespPre)
 		_ = RepScanPool.Invoke(RespPre)
 		_ = ReqScanPool.Invoke(PrePara)
 	}
 
 	ReqWgs.Wait()
-	ReqScanPool.Release()
+	go ReqScanPool.Release()
+	for {
+		if len(RepChan) == 0 {
+			close(RepChan)
+			break
+		}
+	}
 
 	StopCh := make(chan struct{})
-
 	go func() {
 		RepWgs.Wait()
 		close(StopCh)
@@ -261,4 +270,39 @@ func MakeWordChan(alljson []utils.PathDict) chan utils.PathDict {
 	}()
 
 	return WordChan
+}
+
+func GetRange(rang string, allJson []string) []string {
+	if rang == "0" {
+		return allJson
+	} else if !strings.Contains(rang, "-") {
+		End, err := strconv.Atoi(rang)
+		if err != nil {
+			panic("please check End")
+		}
+		if End >= len(allJson) {
+			fmt.Println("out of range,it's set to the end")
+			End = len(allJson)
+		}
+		return allJson[:End]
+	} else if strings.Contains(rang, "-") {
+		RangList := strings.Split(rang, "-")
+		Ben, err := strconv.Atoi(RangList[0])
+		if err != nil {
+			panic("please check End")
+		}
+		if RangList[1] == "" {
+			return allJson[Ben:]
+		}
+		End, err := strconv.Atoi(RangList[1])
+		if err != nil {
+			panic("please check End")
+		}
+		if End >= len(allJson) {
+			fmt.Println("out of range,it's set to the end")
+			End = len(allJson)
+		}
+		return allJson[Ben:End]
+	}
+	return allJson
 }

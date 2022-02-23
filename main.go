@@ -15,8 +15,15 @@ limitations under the License.
 */
 package main
 
-import "Mule/cmd"
+import (
+	"Mule/cmd"
+	//_ "net/http/pprof"
+)
 
 func main() {
+	//go func() {
+	//	http.ListenAndServe("0.0.0.0:8899", nil)
+	//}()
+
 	cmd.Execute()
 }
