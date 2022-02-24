@@ -67,9 +67,13 @@ func init() {
 	BruteCmd.Flags().BoolP("nolog", "", false, "don't produce log")
 	BruteCmd.Flags().BoolP("noupdate", "", false, "don't update dict to json")
 	BruteCmd.Flags().BoolP("noconsole", "", false, "dont output result in console")
+	//BruteCmd.Flags().StringP("prefix","","","prefix of items")
 	BruteCmd.Flags().BoolP("nobanner", "", false, "dont output banner in console")
 	BruteCmd.Flags().BoolP("follow", "", false, "follow the 30x or not")
 	BruteCmd.Flags().StringP("targetrange", "", "0", "target range")
+
+	BruteCmd.Flags().StringP("AutoList", "a", "", "autolist like random Alphabet")
+	BruteCmd.Flags().IntP("Cycle", "c", 1, "Autolist Circulation")
 
 }
 
@@ -252,6 +256,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for cookie: %w", err)
 	}
 
+	//opts.Prefix, err = cmd.Flags().GetString("Prefix")
+	//
+	//if err != nil {
+	//	return nil, fmt.Errorf("invalid value for cookie: %w", err)
+	//}
+
 	opts.Thread, err = cmd.Flags().GetInt("Thread")
 
 	if err != nil {
@@ -317,6 +327,19 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
 	}
+
+	opts.Cycle, err = cmd.Flags().GetInt("Cycle")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for Cycle: %w", err)
+	}
+
+	opts.ElemType, err = cmd.Flags().GetString("AutoList")
+	if err != nil {
+		return nil, fmt.Errorf("invalid value for AutoList: %w", err)
+	}
+
+	opts.Keep = true
 
 	opts.Transport = &http.Transport{
 		TLSClientConfig: &tls.Config{

@@ -72,7 +72,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	FilterTarget(taskroot, client, Opts.Target, Opts.DirRoot)
 
-	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range, Opts.NoUpdate)
+	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range, Opts.NoUpdate, Opts.AutoDict)
 
 	var wg sync.WaitGroup
 	TaskPool, _ := ants.NewPoolWithFunc(Opts.PoolSize, func(Para interface{}) {
@@ -157,7 +157,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 		CuPara := Para.(PoolPara)
 		AccessWork(CurContext, &CuPara)
 	})
-	RepScanPool, _ := ants.NewPoolWithFunc(wp.Opts.Thread*2, func(Para interface{}) {
+	RepScanPool, _ := ants.NewPoolWithFunc(wp.Opts.Thread, func(Para interface{}) {
 		CuPara := Para.(ResponsePara)
 		AccessResponseWork(CurContext, &CuPara)
 	})
@@ -194,8 +194,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 
 	for i := 0; i < wp.Opts.Thread; i++ {
 		ReqWgs.Add(1)
-		RepWgs.Add(2)
-		_ = RepScanPool.Invoke(RespPre)
+		RepWgs.Add(1)
 		_ = RepScanPool.Invoke(RespPre)
 		_ = ReqScanPool.Invoke(PrePara)
 	}

@@ -46,7 +46,7 @@ func (custom *CustomClient) NewHttpClient(Opt *Options) (*CustomClient, error) {
 }
 
 func CheckRedFunc(follow bool) func(req *http.Request, via []*http.Request) error {
-	if !follow {
+	if follow {
 
 		return func(req *http.Request, via []*http.Request) error {
 

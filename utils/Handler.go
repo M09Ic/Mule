@@ -30,6 +30,12 @@ const (
 	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
+type AutoDict struct {
+	ElemType string
+	Cycle    int
+	Keep     bool
+}
+
 func TimeCost() func() {
 	start := time.Now()
 	return func() {
@@ -116,7 +122,7 @@ func HandleLocation(location string) (string, error) {
 	return handled, nil
 }
 
-func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict {
+func ReadDict(info []string, root string, rang string, noupdate bool, ad AutoDict) []PathDict {
 	/*
 		用来读取目录字典的数据，转换成列表的形式
 	*/
@@ -190,6 +196,10 @@ func ReadDict(info []string, root string, rang string, noupdate bool) []PathDict
 			fmt.Println("use dict: " + dictpath)
 		}
 
+	}
+
+	if ad.ElemType != "" {
+		allJson = append(allJson, GenerateAuto(ad)...)
 	}
 
 	// 将每个json数据按照Hits进行排序
@@ -352,4 +362,38 @@ func BytesCombine(pBytes ...[]byte) []byte {
 		buffer.Write(pBytes[index])
 	}
 	return buffer.Bytes()
+}
+
+func GenerateAuto(ad AutoDict) []PathDict {
+	var temp []PathDict
+	var autolist string
+	if strings.Contains(ad.ElemType, "a") {
+		autolist += Alphabet
+	}
+	if strings.Contains(ad.ElemType, "A") {
+		autolist += strings.ToUpper(Alphabet)
+	}
+
+	if strings.Contains(ad.ElemType, "n") {
+		autolist += Number
+	}
+
+	var autolistarr []string
+	for i := range autolist {
+		autolistarr = append(autolistarr, string(autolist[i]))
+	}
+	var tmp []string
+	autolistarr = Product(autolistarr, tmp, 0, ad.Cycle, ad.Keep)
+
+	for _, e := range autolistarr {
+		mid := PathDict{
+			PathInfo: PathInfo{
+				Path: strings.TrimSpace(e),
+				Hits: 0,
+			},
+			Tag: "",
+		}
+		temp = append(temp, mid)
+	}
+	return temp
 }

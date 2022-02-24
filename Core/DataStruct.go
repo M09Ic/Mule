@@ -1,6 +1,7 @@
 package Core
 
 import (
+	"Mule/utils"
 	"net/http"
 )
 
@@ -14,6 +15,7 @@ type Options struct {
 	Range       string
 	Target      []string
 	Cookie      string
+	Prefix      string
 	Method      string
 	Mod         string
 	TargetRange string
@@ -22,6 +24,7 @@ type Options struct {
 	NoUpdate    bool
 	Follow      bool
 	Transport   *http.Transport
+	utils.AutoDict
 }
 
 type ReqRes struct {
