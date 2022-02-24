@@ -75,14 +75,14 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 
 					if FileLogger != nil {
 						if Format == "json" {
-							FileLogger.Info("Success",
-								zap.String("Path", finpath),
-								zap.Int("Code", resp.resp.StatusCode),
-								zap.Int64("Length", resp.resp.Length),
-								zap.String("MMH3", fingeriden.Mmh3),
-								zap.String("MD5", fingeriden.Hash),
-								zap.String("SIM3", fingeriden.SimHash),
-								zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+							FileLogger.Info("success",
+								zap.String("path", finpath),
+								zap.Int("code", resp.resp.StatusCode),
+								zap.Int64("length", resp.resp.Length),
+								zap.String("mmh3", fingeriden.Mmh3),
+								zap.String("md5", fingeriden.Hash),
+								zap.String("sim3", fingeriden.SimHash),
+								zap.String("frameworks", fingeriden.Frameworks.ToString()))
 						} else {
 							FileLogger.Info(fmt.Sprintf("Path: %s\t%v\t%v\t[Framework:%s]\n", finpath, resp.resp.StatusCode, resp.resp.Length, fingeriden.Frameworks.ToString()))
 						}
@@ -126,15 +126,15 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 							return
 						}
 						if Format == "json" {
-							FileLogger.Info("Success",
-								zap.String("IP", resp.finpath.target),
-								zap.String("Path", resp.finpath.preHandleWord),
-								zap.Int("Code", resp.resp.StatusCode),
-								zap.Int64("Length", resp.resp.Length),
-								zap.String("MMH3", fingeriden.Mmh3),
-								zap.String("MD5", fingeriden.Hash),
-								zap.String("SIM3", fingeriden.SimHash),
-								zap.String("Frameworks", fingeriden.Frameworks.ToString()))
+							FileLogger.Info("success",
+								zap.String("ip", resp.finpath.target),
+								zap.String("path", resp.finpath.preHandleWord),
+								zap.Int("code", resp.resp.StatusCode),
+								zap.Int64("length", resp.resp.Length),
+								zap.String("mmh3", fingeriden.Mmh3),
+								zap.String("md5", fingeriden.Hash),
+								zap.String("sim3", fingeriden.SimHash),
+								zap.String("frameworks", fingeriden.Frameworks.ToString()))
 						} else {
 							FileLogger.Info(fmt.Sprintf("IP: %v \tHost: %v\t%v\t%v", resp.finpath.target, resp.finpath.preHandleWord, resp.resp.StatusCode, resp.resp.Length))
 						}

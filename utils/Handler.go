@@ -367,17 +367,21 @@ func BytesCombine(pBytes ...[]byte) []byte {
 func GenerateAuto(ad AutoDict) []PathDict {
 	var temp []PathDict
 	var autolist string
-	if strings.Contains(ad.ElemType, "a") {
-		autolist += Alphabet
-	}
-	if strings.Contains(ad.ElemType, "A") {
-		autolist += strings.ToUpper(Alphabet)
+	if len(strings.Split(ad.ElemType, "§")) >= 2 {
+		inter := strings.Split(ad.ElemType, "§")[0]
+		if strings.Contains(inter, "a") {
+			autolist += Alphabet
+		}
+		if strings.Contains(inter, "A") {
+			autolist += strings.ToUpper(Alphabet)
+		}
+
+		if strings.Contains(inter, "n") {
+			autolist += Number
+		}
 	}
 
-	if strings.Contains(ad.ElemType, "n") {
-		autolist += Number
-	}
-
+	autolist += strings.Split(ad.ElemType, "§")[1]
 	var autolistarr []string
 	for i := range autolist {
 		autolistarr = append(autolistarr, string(autolist[i]))
