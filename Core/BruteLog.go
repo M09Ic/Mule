@@ -18,8 +18,6 @@ import (
 var ResSlice []utils.PathDict
 
 var FileLogger *zap.Logger
-var ProBar *progressbar.ProgressBar
-var CheckFlag int
 var Format string
 
 //初始化log
@@ -182,14 +180,14 @@ func IntInSlice(a int, list []int) bool {
 	return false
 }
 
-func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan chan struct{}) {
+func BruteProcessBar(ctx context.Context, pathCap int, target string, countChan chan struct{}) {
 	// create and start new bar
 	var tmp int
 
-	ProBar = progressbar.NewOptions(PathCap,
+	ProBar := progressbar.NewOptions(pathCap,
 		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionShowBytes(true),
-		progressbar.OptionSetDescription("[cyan] Now Processing [reset]"+Target),
+		progressbar.OptionSetDescription("[cyan] Now Processing [reset]"+target),
 		progressbar.OptionSetTheme(progressbar.Theme{
 			Saucer:        "[green]=",
 			SaucerPadding: " ",
@@ -204,7 +202,7 @@ func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan 
 			time.Sleep(200 * time.Millisecond)
 			ProBar.Finish()
 			return
-		case _, ok := <-CountChan:
+		case _, ok := <-countChan:
 			if !ok {
 				time.Sleep(200 * time.Millisecond)
 				ProBar.Finish()
@@ -212,9 +210,9 @@ func BruteProcessBar(ctx context.Context, PathCap int, Target string, CountChan 
 			}
 
 			tmp += 1
-			if tmp%100 == 0 && tmp != 0 {
+			if tmp%10 == 0 && tmp != 0 {
 				//ProBar.Clear()
-				ProBar.Add(100)
+				ProBar.Add(10)
 				tmp = 0
 			}
 

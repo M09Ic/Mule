@@ -94,7 +94,10 @@ func StartBrute(cmd *cobra.Command, args []string) error {
 
 	CustomClient.Headers = opts.Headers
 
-	err = Core.ScanTask(maincontext, *opts, CustomClient)
+	opts.Follow = false
+	PrePareClient, err := CustomClient.NewHttpClient(opts)
+
+	err = Core.ScanTask(maincontext, *opts, CustomClient, PrePareClient)
 
 	if err != nil {
 		return err
@@ -154,12 +157,12 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 	}
 
 	for _, t := range FTargets {
-		temp, err := utils.HandleTarget(t)
-		if err != nil {
-			return nil, err
-		}
+		//temp, err := utils.HandleTarget(t)
+		//if err != nil {
+		//	return nil, err
+		//}
 
-		opts.Target = append(opts.Target, temp)
+		opts.Target = append(opts.Target, t)
 	}
 
 	// 字典存活验证(现在放到后面读取处进行验证)

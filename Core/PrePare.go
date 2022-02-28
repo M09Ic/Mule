@@ -8,16 +8,18 @@ import (
 	"github.com/projectdiscovery/cdncheck"
 	"net"
 	"regexp"
+	"strings"
 	"sync"
 )
 
 type PreParePara struct {
-	client *CustomClient
-	target string
-	root   string
+	client    *CustomClient
+	preclient *CustomClient
+	target    string
+	root      string
 }
 
-func FilterTarget(ctx context.Context, client *CustomClient, targets []string, root string) {
+func FilterTarget(ctx context.Context, client, preclient *CustomClient, targets []string, root string) {
 
 	var Prep sync.WaitGroup
 	PreParePool, _ := ants.NewPoolWithFunc(100, func(Para interface{}) {
@@ -29,10 +31,10 @@ func FilterTarget(ctx context.Context, client *CustomClient, targets []string, r
 	for _, tar := range targets {
 		Prep.Add(1)
 		pp := PreParePara{
-
-			client: client,
-			target: tar,
-			root:   root,
+			preclient: client,
+			client:    client,
+			target:    tar,
+			root:      root,
 		}
 		_ = PreParePool.Invoke(pp)
 		//if err != nil {
@@ -54,15 +56,6 @@ func ScanPrepare(ctx context.Context, para *PreParePara) {
 	//var WdMap map[string]*WildCard
 
 	fmt.Println("Start to check " + para.target)
-	_, err := para.client.RunRequest(ctx, para.target, Additional{
-		Mod:   "default",
-		Value: "",
-	})
-
-	if err != nil {
-		//fmt.Println(err)
-		return
-	}
 
 	// 加入cdn检测
 	r, _ := regexp.Compile("((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}")
@@ -79,19 +72,70 @@ func ScanPrepare(ctx context.Context, para *PreParePara) {
 
 	}
 
+	target, aliverr := CheckProto(ctx, para.target, para.preclient)
+
+	if !aliverr {
+		fmt.Println("cannot connect to " + para.target)
+		return
+	}
+	HandleredTarget = append(HandleredTarget, target)
 	RandomPath = utils.RandStringBytesMaskImprSrcUnsafe(12)
 
 	//wildcard, err := client.RunRequest(ctx, target+"/"+RandomPath)
 
-	WdMap, err := GenWildCardMap(ctx, para.client, RandomPath, para.target, para.root)
+	WdMap, err := GenWildCardMap(ctx, para.client, RandomPath, target, para.root)
 
 	if err != nil {
-		//fmt.Println(err)
+		fmt.Println("cannot connect to " + para.target)
 		return
 	}
 
-	AllWildMap.Store(para.target, WdMap)
+	AllWildMap.Store(target, WdMap)
 
 	return
 
+}
+
+func CheckProto(ctx context.Context, target string, client *CustomClient) (string, bool) {
+	temptarget, err := utils.HandleTarget(target)
+	if err != nil {
+		return "", false
+	}
+
+	res, err := client.RunRequest(ctx, temptarget, Additional{
+		Mod:   "default",
+		Value: "",
+	})
+
+	if err != nil {
+		if strings.HasPrefix(temptarget, "https://") {
+			return "", false
+		} else if strings.HasPrefix(temptarget, "http://") {
+			temptarget = strings.Replace(temptarget, "http", "https", 1)
+			_, err = client.RunRequest(ctx, temptarget, Additional{
+				Mod:   "default",
+				Value: "",
+			})
+			if err != nil {
+				return "", false
+			}
+		}
+	}
+
+	if strings.HasPrefix(temptarget, "http://") {
+		if (res.StatusCode >= 300 && res.StatusCode < 400) && strings.HasPrefix(res.Header.Get("Location"), "https") {
+			temptarget = strings.Replace(temptarget, "http", "https", 1)
+		} else if res.StatusCode == 400 {
+			temptarget = strings.Replace(temptarget, "http", "https", 1)
+			_, err = client.RunRequest(ctx, temptarget, Additional{
+				Mod:   "default",
+				Value: "",
+			})
+			if err != nil {
+				return "", false
+			}
+		}
+	}
+
+	return temptarget, true
 }

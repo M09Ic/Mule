@@ -12,7 +12,7 @@ import (
 
 type ResponsePara struct {
 	repchan  chan *Resp
-	ResChan  chan *utils.PathDict
+	resChan  chan *utils.PathDict
 	StopCh   chan struct{}
 	wgs      *sync.WaitGroup
 	wdmap    map[string]*WildCard
@@ -102,7 +102,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						return
 					default:
 						select {
-						case WorkPara.ResChan <- &resp.path:
+						case WorkPara.resChan <- &resp.path:
 							continue
 						case <-time.After(5 * time.Second):
 							return
@@ -121,10 +121,10 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 					resp.path.Hits += 1
 					if FileLogger != nil {
 
-						err := ProBar.Clear()
-						if err != nil {
-							return
-						}
+						//err := ProBar.Clear()
+						//if err != nil {
+						//	return
+						//}
 						if Format == "json" {
 							FileLogger.Info("success",
 								zap.String("ip", resp.finpath.target),
@@ -146,7 +146,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 					default:
 
 						select {
-						case WorkPara.ResChan <- &resp.path:
+						case WorkPara.resChan <- &resp.path:
 						case <-time.After(5 * time.Second):
 							return
 						}

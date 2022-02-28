@@ -1,30 +1,30 @@
 package Core
 
 import (
+	"Mule/utils"
 	"context"
 	"strings"
 	"time"
 )
 
-func AccessWork(ctx context.Context, WorkPara *PoolPara) {
-	defer WorkPara.wgs.Done()
+func AccessWork(ctx context.Context, workPara *PoolPara) {
+	defer workPara.wgs.Done()
 	//result,err := custom.RunRequest(ctx, Url)
-
 	for {
 		select {
 		case <-ctx.Done():
 			return
 
-		case word, ok := <-WorkPara.wordchan:
+		case word, ok := <-workPara.wordchan:
 			if !ok {
 				return
 			}
 
-			//if !utils.Nolog {
-			//	WorkPara.Countchan <- struct{}{}
-			//}
+			if !utils.Nolog {
+				workPara.countchan <- struct{}{}
+			}
 
-			WorkPara.CheckChan <- struct{}{}
+			workPara.checkChan <- struct{}{}
 
 			path := word.Path
 
@@ -38,11 +38,11 @@ func AccessWork(ctx context.Context, WorkPara *PoolPara) {
 			}
 
 			add := Additional{
-				Mod:   WorkPara.custom.Mod,
+				Mod:   workPara.custom.Mod,
 				Value: PreHandleWord,
 			}
 
-			result, err := WorkPara.custom.RunRequest(ctx, WorkPara.target, add)
+			result, err := workPara.custom.RunRequest(ctx, workPara.target, add)
 
 			if err != nil {
 				// TODO 错误处理
@@ -52,7 +52,7 @@ func AccessWork(ctx context.Context, WorkPara *PoolPara) {
 			curresp := Resp{
 				resp: result,
 				finpath: handledpath{
-					target:        WorkPara.target,
+					target:        workPara.target,
 					preHandleWord: PreHandleWord,
 				},
 				path: word,
@@ -63,7 +63,7 @@ func AccessWork(ctx context.Context, WorkPara *PoolPara) {
 				return
 			default:
 				select {
-				case WorkPara.RepChan <- &curresp:
+				case workPara.repChan <- &curresp:
 				case <-time.After(2 * time.Second):
 					return
 				}

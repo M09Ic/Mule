@@ -14,15 +14,16 @@ import (
 
 var PathLength int
 var SpiderWaitChan = make(chan string, 100)
+var HandleredTarget []string
 var Block int
 var AllWildMap sync.Map
 
 type PoolPara struct {
 	wordchan  chan utils.PathDict
 	StopCh    chan struct{}
-	Countchan chan struct{}
-	CheckChan chan struct{}
-	RepChan   chan *Resp
+	countchan chan struct{}
+	checkChan chan struct{}
+	repChan   chan *Resp
 	custom    *CustomClient
 	target    string
 	wgs       *sync.WaitGroup
@@ -34,7 +35,7 @@ type tarwp struct {
 	target  string
 }
 
-func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
+func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient) error {
 
 	//f, err := os.OpenFile("cpu.prof", os.O_RDWR|os.O_CREATE, 0644)
 	//if err != nil {
@@ -70,7 +71,7 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 
 	Opts.Target = GetRange(Opts.TargetRange, Opts.Target)
 
-	FilterTarget(taskroot, client, Opts.Target, Opts.DirRoot)
+	FilterTarget(taskroot, client, preclient, Opts.Target, Opts.DirRoot)
 
 	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range, Opts.NoUpdate, Opts.AutoDict)
 
@@ -83,13 +84,12 @@ func ScanTask(ctx context.Context, Opts Options, client *CustomClient) error {
 	utils.Configloader()
 	var targetwd []tarwp
 
-	for _, curtarget := range Opts.Target {
+	for _, curtarget := range HandleredTarget {
 		var wildcardmap map[string]*WildCard
 
 		var tw tarwp
 
 		if wd, ok := AllWildMap.Load(curtarget); !ok {
-			fmt.Println("cannot connect to " + curtarget)
 			continue
 		} else {
 			wildcardmap = wd.(map[string]*WildCard)
@@ -136,21 +136,22 @@ type WorkPara struct {
 }
 
 func StartProcess(ctx context.Context, wp *WorkPara) {
-	//var Countchan = make(chan struct{}, 1000)
-	var RepChan = make(chan *Resp, 1000)
-	var ResChan = make(chan *utils.PathDict, 1000)
-	var CheckChan = make(chan struct{}, 1000)
+
+	repChan := make(chan *Resp, 1000)
+	resChan := make(chan *utils.PathDict, 1000)
+	checkChan := make(chan struct{}, 1000)
 	CurContext, CurCancel := context.WithCancel(ctx)
 
 	//读取字典返回管道
 	WordChan := MakeWordChan(*wp.alljson)
 	//检测成功后初始化各类插件
 	// waf检测
-	go TimingCheck(CurContext, wp.client, wp.target, wp.wdmap["default"], CheckChan, CurCancel)
+	go timeChecking(CurContext, wp.client, wp.target, wp.wdmap["default"], checkChan, CurCancel)
 	//进度条
-	//if !wp.Opts.Nolog {
-	//	go BruteProcessBar(CurContext, PathLength, wp.target, Countchan)
-	//}
+	countchan := make(chan struct{}, 1000)
+	if !wp.Opts.Nolog {
+		go BruteProcessBar(CurContext, PathLength, wp.target, countchan)
+	}
 
 	//  开启线程池
 	ReqScanPool, _ := ants.NewPoolWithFunc(wp.Opts.Thread, func(Para interface{}) {
@@ -166,21 +167,21 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	var StopCh_R = make(chan struct{})
 	PrePara := PoolPara{
 		wordchan:  WordChan,
-		RepChan:   RepChan,
-		CheckChan: CheckChan,
-		//Countchan: Countchan,
-		custom: wp.client,
-		target: wp.target,
-		wgs:    &ReqWgs,
-		StopCh: StopCh_R,
-		wdmap:  wp.wdmap,
+		repChan:   repChan,
+		checkChan: checkChan,
+		countchan: countchan,
+		custom:    wp.client,
+		target:    wp.target,
+		wgs:       &ReqWgs,
+		StopCh:    StopCh_R,
+		wdmap:     wp.wdmap,
 	}
 
 	cm := sync.Map{}
 
 	RespPre := ResponsePara{
-		repchan:  RepChan,
-		ResChan:  ResChan,
+		repchan:  repChan,
+		resChan:  resChan,
 		wgs:      &RepWgs,
 		wdmap:    wp.wdmap,
 		cachemap: &cm,
@@ -190,7 +191,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	}
 
 	//开启结果协程
-	go ResHandle(CurContext, ResChan)
+	go ResHandle(CurContext, resChan)
 
 	for i := 0; i < wp.Opts.Thread; i++ {
 		ReqWgs.Add(1)
@@ -202,8 +203,8 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	ReqWgs.Wait()
 	go ReqScanPool.Release()
 	for {
-		if len(RepChan) == 0 {
-			close(RepChan)
+		if len(repChan) == 0 {
+			close(repChan)
 			break
 		}
 	}
@@ -224,6 +225,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	}
 
 	RepScanPool.Release()
+
 	//if Opts.JsFinder {
 	//	fmt.Println("扫描结束，请等待linkfinder运行结束")
 	//	time.Sleep(500 * time.Millisecond)

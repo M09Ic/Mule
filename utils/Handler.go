@@ -379,9 +379,11 @@ func GenerateAuto(ad AutoDict) []PathDict {
 		if strings.Contains(inter, "n") {
 			autolist += Number
 		}
+		autolist += strings.Split(ad.ElemType, "§")[1]
+	} else {
+		autolist += ad.ElemType
 	}
 
-	autolist += strings.Split(ad.ElemType, "§")[1]
 	var autolistarr []string
 	for i := range autolist {
 		autolistarr = append(autolistarr, string(autolist[i]))
