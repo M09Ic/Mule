@@ -34,6 +34,7 @@ func timeChecking(ctx context.Context, client *CustomClient, target string, wd *
 	checkFlag := 0
 	cancelFlag := 0
 	timeoutflag := 0
+	checktime := 50
 	for {
 
 		select {
@@ -44,7 +45,7 @@ func timeChecking(ctx context.Context, client *CustomClient, target string, wd *
 				return
 			}
 			checkFlag += 1
-			if checkFlag%50 == 0 && checkFlag != 0 {
+			if checkFlag%checktime == 0 && checkFlag != 0 {
 			ReCon:
 				res, err := TriggerWaf(ctx, client, target, wd)
 				//fmt.Println(len(repChan))
@@ -65,12 +66,17 @@ func timeChecking(ctx context.Context, client *CustomClient, target string, wd *
 						goto ReCon
 					} else {
 						cancelFlag += 1
+						goto ReCon
 					}
 
 				} else if res {
 					//fmt.Printf("bad luck, you have been blocked %s, there is a waf or check your network\n", target)
 					//ctxcancel()
 					cancelFlag += 1
+					goto ReCon
+				} else {
+					// 在没有检测出问题时就直接增加1.5倍的下次check时间，降低消耗
+					checktime = checktime + checktime/2
 				}
 
 				if cancelFlag >= Block {
