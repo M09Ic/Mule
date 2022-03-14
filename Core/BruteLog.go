@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/schollz/progressbar/v3"
+	"github.com/gosuri/uiprogress"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io/ioutil"
@@ -16,7 +16,7 @@ import (
 )
 
 var ResSlice []utils.PathDict
-
+var Pgbar *uiprogress.Progress
 var FileLogger *zap.Logger
 var Format string
 
@@ -182,40 +182,35 @@ func IntInSlice(a int, list []int) bool {
 
 func BruteProcessBar(ctx context.Context, pathCap int, target string, countChan chan struct{}) {
 	// create and start new bar
-	var tmp int
 
-	ProBar := progressbar.NewOptions(pathCap,
-		progressbar.OptionEnableColorCodes(true),
-		progressbar.OptionShowBytes(true),
-		progressbar.OptionSetDescription("[cyan] Now Processing [reset]"+target),
-		progressbar.OptionSetTheme(progressbar.Theme{
-			Saucer:        "[green]=",
-			SaucerPadding: " ",
-			BarStart:      "|",
-			BarEnd:        "|",
-			SaucerHead:    "[blue]>",
-		}))
+	bar := Pgbar.AddBar(pathCap).AppendCompleted().PrependCompleted()
+
+	bar.PrependFunc(func(b *uiprogress.Bar) string {
+		return fmt.Sprintf("%s", target)
+	})
 
 	for {
 		select {
 		case <-ctx.Done():
+			for i := 0; i < len(Pgbar.Bars); i++ {
+				if Pgbar.Bars[i] == bar {
+					Pgbar.Bars = append(Pgbar.Bars[:i], Pgbar.Bars[i+1:]...)
+				}
+			}
 			time.Sleep(200 * time.Millisecond)
-			ProBar.Finish()
+
 			return
 		case _, ok := <-countChan:
 			if !ok {
+				for i := 0; i < len(Pgbar.Bars); i++ {
+					if Pgbar.Bars[i] == bar {
+						Pgbar.Bars = append(Pgbar.Bars[:i], Pgbar.Bars[i+1:]...)
+					}
+				}
 				time.Sleep(200 * time.Millisecond)
-				ProBar.Finish()
 				return
 			}
-
-			tmp += 1
-			if tmp%100 == 0 && tmp != 0 {
-				//ProBar.Clear()
-				ProBar.Add(100)
-				tmp = 0
-			}
-
+			bar.Incr()
 		}
 	}
 

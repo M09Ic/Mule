@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gosuri/uiprogress"
 	"github.com/panjf2000/ants"
 	"strconv"
 	"strings"
@@ -83,6 +84,9 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 	})
 	utils.Configloader()
 	var targetwd []tarwp
+
+	Pgbar = uiprogress.New()
+	Pgbar.Start()
 
 	for _, curtarget := range HandleredTarget {
 		var wildcardmap map[string]*WildCard
@@ -217,10 +221,10 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 
 	select {
 	case <-StopCh:
-		fmt.Printf("%v finsihed\n", wp.target)
+		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintf("%v finsihed\n", wp.target))
 
 	case <-time.After(time.Duration(wp.Opts.Timeout+2) * time.Second):
-		fmt.Printf("%v break of time\n", wp.target)
+		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintf("%v break of time\n", wp.target))
 
 	}
 

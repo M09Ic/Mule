@@ -7,6 +7,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/go-dedup/simhash v0.0.0-20170904020510-9ecaca7b509c
 	github.com/gocolly/colly/v2 v2.1.0
+	github.com/gosuri/uiprogress v0.0.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/panjf2000/ants v1.3.0
 	github.com/projectdiscovery/cdncheck v0.0.2
@@ -29,6 +30,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/gosuri/uilive v0.0.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect

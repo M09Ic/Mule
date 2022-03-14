@@ -59,7 +59,8 @@ func timeChecking(ctx context.Context, client *CustomClient, target string, wd *
 								zap.String("error_target", target),
 								zap.Int("error_item", checkFlag))
 							//暂时block报错输出
-							fmt.Printf("\nbad luck, you have been blocked %s, now item %v\n", target, checkFlag)
+							waf := fmt.Sprintf("\nbad luck, you have been blocked %s, now item %v\n", target, checkFlag)
+							fmt.Fprintln(Pgbar.Bypass(), waf)
 							ctxcancel()
 							return
 						}
