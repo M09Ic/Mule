@@ -210,9 +210,9 @@ func BruteProcessBar(ctx context.Context, pathCap int, target string, countChan 
 			}
 
 			tmp += 1
-			if tmp%10 == 0 && tmp != 0 {
+			if tmp%100 == 0 && tmp != 0 {
 				//ProBar.Clear()
-				ProBar.Add(10)
+				ProBar.Add(100)
 				tmp = 0
 			}
 

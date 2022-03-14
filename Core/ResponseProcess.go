@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"go.uber.org/zap"
+	"io"
+	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -95,6 +98,8 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
+						io.WriteString(os.Stdout, fmt.Sprintf("\r%s\r", strings.Repeat(" ", 40)))
+
 						fmt.Printf("Path: %s\t%s\t%s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
 					}
 					select {
@@ -116,6 +121,8 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
+						io.WriteString(os.Stdout, fmt.Sprintf("\r%s\r", strings.Repeat(" ", 40)))
+
 						fmt.Printf("IP: %s \tHost: %s \t%s\t%s\n", cy(resp.finpath.target), blue(resp.finpath.preHandleWord), cy(resp.resp.StatusCode), red(resp.resp.Length))
 					}
 					resp.path.Hits += 1
