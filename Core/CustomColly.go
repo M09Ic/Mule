@@ -102,7 +102,7 @@ func (crawler *Crawler) init() {
 	//初始化js finder
 	crawler.LinkFinderCollector = crawler.NormalCollector.Clone()
 	crawler.LinkFinderCollector.OnResponse(func(response *colly.Response) {
-		if response.StatusCode == 404 || response.StatusCode == 429 || response.StatusCode < 100 {
+		if response.StatusCode == 404 || response.StatusCode == 403 || response.StatusCode == 429 || response.StatusCode < 100 {
 			return
 		}
 
@@ -110,12 +110,6 @@ func (crawler *Crawler) init() {
 
 		// Verify which link is working
 		u := response.Request.URL.String()
-
-		//outputFormat := fmt.Sprintf("[url] - [code-%d] - [len_%d] - %s", response.StatusCode, len(respStr), u)
-		//
-		//fmt.Println(outputFormat)
-
-		//crawler.findAWSS3(respStr)
 
 		paths, err := LinkFinder(respStr)
 		if err != nil {
@@ -150,7 +144,7 @@ func (crawler *Crawler) init() {
 				rebuildURL = FixUrl(crawler.site, relPath)
 			}
 
-			if rebuildURL == "" {
+			if rebuildURL == "" || !LinkBlackList(rebuildURL) {
 				continue
 			}
 
@@ -180,7 +174,7 @@ func (crawler *Crawler) init() {
 	crawler.NormalCollector.OnHTML("[src]", func(e *colly.HTMLElement) {
 		jsFileUrl := e.Request.AbsoluteURL(e.Attr("src"))
 		jsFileUrl = FixUrl(crawler.site, jsFileUrl)
-		if jsFileUrl == "" {
+		if jsFileUrl == "" || !LinkBlackList(jsFileUrl) {
 			return
 		}
 
@@ -194,7 +188,7 @@ func (crawler *Crawler) init() {
 	crawler.NormalCollector.OnHTML("[href]", func(e *colly.HTMLElement) {
 		urlString := e.Request.AbsoluteURL(e.Attr("href"))
 		urlString = FixUrl(crawler.site, urlString)
-		if urlString == "" {
+		if urlString == "" || !LinkBlackList(urlString) {
 			return
 		}
 

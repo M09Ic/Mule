@@ -99,18 +99,6 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						output := fmt.Sprintf("Path: %s\t%s\t%s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
 						fmt.Fprintln(Pgbar.Bypass(), output)
 					}
-					select {
-					case <-ctx.Done():
-						return
-					default:
-						select {
-						case WorkPara.resChan <- &resp.path:
-							continue
-						case <-time.After(5 * time.Second):
-							return
-						}
-
-					}
 
 				case "host":
 					if !utils.Noconsole {
@@ -138,21 +126,22 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						}
 
 					}
-					select {
-					case <-ctx.Done():
-						return
-					default:
-
-						select {
-						case WorkPara.resChan <- &resp.path:
-						case <-time.After(5 * time.Second):
-							return
-						}
-					}
 				}
 
 				if WorkPara.jsfinder && WorkPara.mod == "default" {
 					SpiderWaitChan <- resp.finpath.target + resp.finpath.preHandleWord
+				}
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					select {
+					case WorkPara.resChan <- &resp.path:
+						continue
+					case <-time.After(5 * time.Second):
+						return
+					}
+
 				}
 
 			}

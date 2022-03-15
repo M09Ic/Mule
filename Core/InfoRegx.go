@@ -23,13 +23,26 @@ func LinkFinder(source string) ([]string, error) {
 	match := linkFinderRegex.FindAllStringSubmatch(source, -1)
 	for _, m := range match {
 		matchGroup1 := utils.FilterNewLines(m[1])
-		if matchGroup1 == "" {
+
+		if matchGroup1 == "" && !LinkBlackList(matchGroup1) {
 			continue
 		}
+
 		links = append(links, matchGroup1)
 	}
 	links = utils.RemoveDuplicateElement(links)
 	return links, nil
+}
+
+func LinkBlackList(source string) bool {
+	source = strings.ToLower(source)
+	var blaclist = []string{"jquery", "layer", "swiper", "bootstrap", "crypto", "echo"}
+	for _, i := range blaclist {
+		if strings.Contains(source, i) {
+			return false
+		}
+	}
+	return true
 }
 
 func GetAWSS3(source string) []string {

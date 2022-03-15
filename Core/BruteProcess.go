@@ -38,37 +38,31 @@ type tarwp struct {
 
 func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient) error {
 
-	//f, err := os.OpenFile("cpu.prof", os.O_RDWR|os.O_CREATE, 0644)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//pprof.StartCPUProfile(f)
-
 	taskroot, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	//var SpWgs sync.WaitGroup
+	var SpWgs sync.WaitGroup
 
 	////js探测
-	//if Opts.JsFinder {
-	//	go SpiderResHandle(SpiderChan)
-	//	SpiderScanPool, _ := ants.NewPoolWithFunc(10, func(Para interface{}) {
-	//		defer SpWgs.Done()
-	//		CuPara := Para.(string)
-	//		newcolly := NewCollyClient(&Opts)
-	//		newcolly.Start(CuPara)
-	//		newcolly.NormalCollector.Wait()
-	//		newcolly.LinkFinderCollector.Wait()
-	//	})
-	//
-	//	go func(Spchan chan string) {
-	//		for i := range Spchan {
-	//			SpWgs.Add(1)
-	//			_ = SpiderScanPool.Invoke(i)
-	//		}
-	//	}(SpiderWaitChan)
-	//
-	//}
+	if Opts.JsFinder {
+		go SpiderResHandle(SpiderChan)
+		SpiderScanPool, _ := ants.NewPoolWithFunc(10, func(Para interface{}) {
+			defer SpWgs.Done()
+			CuPara := Para.(string)
+			newcolly := NewCollyClient(&Opts)
+			newcolly.Start(CuPara)
+			newcolly.NormalCollector.Wait()
+			newcolly.LinkFinderCollector.Wait()
+		})
+
+		go func(Spchan chan string) {
+			for i := range Spchan {
+				SpWgs.Add(1)
+				_ = SpiderScanPool.Invoke(i)
+			}
+		}(SpiderWaitChan)
+
+	}
 
 	Opts.Target = GetRange(Opts.TargetRange, Opts.Target)
 
@@ -128,6 +122,10 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 
 	}
 	wg.Wait()
+	SpWgs.Wait()
+	if Opts.JsFinder {
+		OutputLinkFinder()
+	}
 	return nil
 }
 
@@ -229,16 +227,6 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	}
 
 	RepScanPool.Release()
-
-	//if Opts.JsFinder {
-	//	fmt.Println("扫描结束，请等待linkfinder运行结束")
-	//	time.Sleep(500 * time.Millisecond)
-	//	SpWgs.Wait()
-	//}
-	//
-	//if Opts.JsFinder {
-	//	OutputLinkFinder()
-	//}
 	if wp.Opts.Nolog {
 		JsonRes, _ := json.Marshal(ResSlice)
 		fmt.Println(string(JsonRes))
