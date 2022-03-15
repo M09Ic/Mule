@@ -66,15 +66,15 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 			//comres, err := CompareWildCard(WorkPara.wdmap["default"], result)
 
 			if comres {
+				finpath := resp.finpath.target + resp.finpath.preHandleWord
+				resp.Alivepath = finpath
+				temp := resp.Hash
+				fingeriden := identifyResp(resp.resp)
+				resp.IdentifyRes = fingeriden
+				resp.path.Hits += 1
+				fingeriden.Hash = temp
 				switch WorkPara.mod {
 				case "default":
-					finpath := resp.finpath.target + resp.finpath.preHandleWord
-					resp.Alivepath = finpath
-					temp := resp.Hash
-					fingeriden := identifyResp(resp.resp)
-					resp.IdentifyRes = fingeriden
-					resp.path.Hits += 1
-					fingeriden.Hash = temp
 
 					if FileLogger != nil {
 						if Format == "json" {
@@ -91,10 +91,6 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						}
 					}
 					if !utils.Noconsole {
-						//err := ProBar.Clear()
-						//if err != nil {
-						//	return
-						//}
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
@@ -117,26 +113,20 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 					}
 
 				case "host":
-					fingeriden := identifyResp(resp.resp)
 					if !utils.Noconsole {
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
 
-						output := fmt.Sprintf("IP: %s \tHost: %s \t%s\t%s\n", cy(resp.finpath.target), blue(resp.finpath.preHandleWord), cy(resp.resp.StatusCode), red(resp.resp.Length))
+						output := fmt.Sprintf("Path: %s\t%s\t%s\t[Framework:%s]\n", blue(resp.finpath.target+" "+resp.finpath.preHandleWord), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
 						fmt.Fprintln(Pgbar.Bypass(), output)
 					}
 					resp.path.Hits += 1
 					if FileLogger != nil {
-
-						//err := ProBar.Clear()
-						//if err != nil {
-						//	return
-						//}
 						if Format == "json" {
 							FileLogger.Info("success",
 								zap.String("ip", resp.finpath.target),
-								zap.String("path", resp.finpath.preHandleWord),
+								zap.String("host", resp.finpath.preHandleWord),
 								zap.Int("code", resp.resp.StatusCode),
 								zap.Int64("length", resp.resp.Length),
 								zap.String("mmh3", fingeriden.Mmh3),
@@ -144,7 +134,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 								zap.String("sim3", fingeriden.SimHash),
 								zap.String("frameworks", fingeriden.Frameworks.ToString()))
 						} else {
-							FileLogger.Info(fmt.Sprintf("IP: %v \tHost: %v\t%v\t%v", resp.finpath.target, resp.finpath.preHandleWord, resp.resp.StatusCode, resp.resp.Length))
+							FileLogger.Info(fmt.Sprintf("Path: %s\t%s\t%s\t[Framework:%s]\n", resp.finpath.target+" "+resp.finpath.preHandleWord, resp.resp.StatusCode, resp.resp.Length, fingeriden.Frameworks.ToString()))
 						}
 
 					}
