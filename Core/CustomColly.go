@@ -9,10 +9,12 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
 var DefaultDepth = 1
+var CollyCache *sync.Map
 
 type Crawler struct {
 	// js的发现器
@@ -217,12 +219,19 @@ func (crawler *Crawler) init() {
 func (crawler *Crawler) feedLinkfinder(jsFileUrl string) {
 
 	// If JS file is minimal format. Try to find original format
+
+	if _, ok := CollyCache.Load(jsFileUrl); ok {
+		return
+	}
+	CollyCache.Store(jsFileUrl, "1")
+
 	if strings.Contains(jsFileUrl, ".min.js") {
 		originalJS := strings.ReplaceAll(jsFileUrl, ".min.js", ".js")
 		_ = crawler.LinkFinderCollector.Visit(originalJS)
 	}
 
 	// Send Javascript to Link Finder Collector
+
 	_ = crawler.LinkFinderCollector.Visit(jsFileUrl)
 
 }
