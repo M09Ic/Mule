@@ -14,7 +14,7 @@ import (
 )
 
 var DefaultDepth = 1
-var CollyCache *sync.Map
+var CollyCache sync.Map
 
 type Crawler struct {
 	// js的发现器

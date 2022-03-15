@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"go.uber.org/zap"
-	"io"
-	"os"
-	"strings"
 	"sync"
 	"time"
 )
@@ -94,7 +91,6 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
-						io.WriteString(os.Stdout, fmt.Sprintf("\r%s\r", strings.Repeat(" ", 40)))
 
 						output := fmt.Sprintf("Path: %s\t%s\t%s\t[Framework:%s]\n", blue(finpath), cy(resp.resp.StatusCode), red(resp.resp.Length), cy(fingeriden.Frameworks.ToString()))
 						fmt.Fprintln(Pgbar.Bypass(), output)
@@ -128,7 +124,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 					}
 				}
 
-				if WorkPara.jsfinder && WorkPara.mod == "default" {
+				if WorkPara.jsfinder && WorkPara.mod == "default" && (resp.resp.StatusCode == 200 || (300 <= resp.resp.StatusCode && resp.resp.StatusCode < 400)) {
 					SpiderWaitChan <- resp.finpath.target + resp.finpath.preHandleWord
 				}
 				select {

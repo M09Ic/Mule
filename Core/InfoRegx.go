@@ -36,7 +36,7 @@ func LinkFinder(source string) ([]string, error) {
 
 func LinkBlackList(source string) bool {
 	source = strings.ToLower(source)
-	var blaclist = []string{"jquery", "layer", "swiper", "bootstrap", "crypto", "echo"}
+	var blaclist = []string{"jquery", "layer", "swiper", "bootstrap", "crypto", "echo", "lhgdialog", "jbox", "moment"}
 	for _, i := range blaclist {
 		if strings.Contains(source, i) {
 			return false

@@ -143,6 +143,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	resChan := make(chan *utils.PathDict, 1000)
 	checkChan := make(chan struct{}, 1000)
 	CurContext, CurCancel := context.WithCancel(ctx)
+	SpiderWaitChan <- wp.target
 
 	//读取字典返回管道
 	WordChan := MakeWordChan(*wp.alljson)
@@ -180,7 +181,8 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	}
 
 	cm := sync.Map{}
-
+	wdhash := utils.Md5Hash(wp.wdmap["default"].Body)
+	cm.Store(wdhash, true)
 	RespPre := ResponsePara{
 		repchan:  repChan,
 		resChan:  resChan,
@@ -219,7 +221,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 
 	select {
 	case <-StopCh:
-		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintf("%v finsihed\n", wp.target))
+		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintf("%v finished\n", wp.target))
 
 	case <-time.After(time.Duration(wp.Opts.Timeout+2) * time.Second):
 		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintf("%v break of time\n", wp.target))
