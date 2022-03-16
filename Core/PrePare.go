@@ -72,7 +72,7 @@ func ScanPrepare(ctx context.Context, para *PreParePara) {
 
 	}
 
-	target, aliverr := CheckProto(ctx, para.target, para.preclient)
+	resp, target, aliverr := CheckProto(ctx, para.target, para.preclient)
 
 	if !aliverr {
 		fmt.Println("cannot connect to " + para.target)
@@ -89,6 +89,14 @@ func ScanPrepare(ctx context.Context, para *PreParePara) {
 		fmt.Println("cannot connect to " + para.target)
 		return
 	}
+	if resp != nil {
+		WdMap["defaultcon"] = &WildCard{
+			StatusCode: resp.StatusCode,
+			Body:       resp.Body,
+			Length:     resp.Length,
+			Type:       0,
+		}
+	}
 
 	AllWildMap.Store(target, WdMap)
 
@@ -96,28 +104,30 @@ func ScanPrepare(ctx context.Context, para *PreParePara) {
 
 }
 
-func CheckProto(ctx context.Context, target string, client *CustomClient) (string, bool) {
+func CheckProto(ctx context.Context, target string, client *CustomClient) (*ReqRes, string, bool) {
 	temptarget, err := utils.HandleTarget(target)
+	var res *ReqRes
+
 	if err != nil {
-		return "", false
+		return nil, "", false
 	}
 
-	res, err := client.RunRequest(ctx, temptarget, Additional{
+	res, err = client.RunRequest(ctx, temptarget, Additional{
 		Mod:   "default",
 		Value: "",
 	})
 
 	if err != nil {
 		if strings.HasPrefix(temptarget, "https://") {
-			return "", false
+			return nil, "", false
 		} else if strings.HasPrefix(temptarget, "http://") {
 			temptarget = strings.Replace(temptarget, "http", "https", 1)
-			_, err = client.RunRequest(ctx, temptarget, Additional{
+			res, err = client.RunRequest(ctx, temptarget, Additional{
 				Mod:   "default",
 				Value: "",
 			})
 			if err != nil {
-				return "", false
+				return nil, "", false
 			}
 		}
 	}
@@ -127,15 +137,15 @@ func CheckProto(ctx context.Context, target string, client *CustomClient) (strin
 			temptarget = strings.Replace(temptarget, "http", "https", 1)
 		} else if res.StatusCode == 400 {
 			temptarget = strings.Replace(temptarget, "http", "https", 1)
-			_, err = client.RunRequest(ctx, temptarget, Additional{
+			res, err = client.RunRequest(ctx, temptarget, Additional{
 				Mod:   "default",
 				Value: "",
 			})
 			if err != nil {
-				return "", false
+				return nil, "", false
 			}
 		}
 	}
 
-	return temptarget, true
+	return res, temptarget, true
 }

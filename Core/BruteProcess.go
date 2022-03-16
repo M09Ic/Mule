@@ -181,8 +181,11 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	}
 
 	cm := sync.Map{}
-	wdhash := utils.Md5Hash(wp.wdmap["default"].Body)
-	cm.Store(wdhash, true)
+	if _, ok := wp.wdmap["defaultcon"]; ok {
+		wdhash := utils.Md5Hash(wp.wdmap["defaultcon"].Body)
+		cm.Store(wdhash, true)
+	}
+
 	RespPre := ResponsePara{
 		repchan:  repChan,
 		resChan:  resChan,
