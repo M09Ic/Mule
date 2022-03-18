@@ -134,7 +134,7 @@ func (crawler *Crawler) init() {
 		SpiderChan <- &res
 
 		// 输出js匹配结果
-		fmt.Println(response.Request.URL.String())
+		//fmt.Println(response.Request.URL.String())
 		for _, relPath := range paths {
 			// JS Regex Result
 			//outputFormat = fmt.Sprintf("- %s", relPath)

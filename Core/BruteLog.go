@@ -69,11 +69,8 @@ func InitBruteLogger(logfile string, nolog, nobanner, js bool) {
 
 			var jsencoder zapcore.Encoder
 
-			if Format == "json" {
-				jsencoder = zapcore.NewJSONEncoder(jsencoderConfig)
-			} else {
-				jsencoder = zapcore.NewConsoleEncoder(jsencoderConfig)
-			}
+			jsencoder = zapcore.NewConsoleEncoder(jsencoderConfig)
+
 			jscore := zapcore.NewCore(jsencoder, zapcore.NewMultiWriteSyncer(jswriteSyncer), zapcore.DebugLevel)
 			JsLogger = zap.New(jscore)
 		}
