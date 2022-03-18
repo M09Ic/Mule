@@ -43,7 +43,7 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 
 	var SpWgs sync.WaitGroup
 
-	////js探测
+	// js探测
 	if Opts.JsFinder {
 		go SpiderResHandle(SpiderChan)
 		SpiderScanPool, _ := ants.NewPoolWithFunc(10, func(Para interface{}) {
@@ -123,9 +123,6 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 	}
 	wg.Wait()
 	SpWgs.Wait()
-	if Opts.JsFinder {
-		OutputLinkFinder()
-	}
 	return nil
 }
 

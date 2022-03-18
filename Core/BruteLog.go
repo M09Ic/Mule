@@ -18,11 +18,12 @@ import (
 var ResSlice []utils.PathDict
 var Pgbar *uiprogress.Progress
 var FileLogger *zap.Logger
+var JsLogger *zap.Logger
 var Format string
 
 //初始化log
 
-func InitLogger(logfile string, nolog, nobanner bool) {
+func InitBruteLogger(logfile string, nolog, nobanner, js bool) {
 	//defer utils.TimeCost()()
 	//
 	//fmt.Println("Start init logger")
@@ -51,10 +52,32 @@ func InitLogger(logfile string, nolog, nobanner bool) {
 		} else {
 			encoder = zapcore.NewConsoleEncoder(encoderConfig)
 		}
-
 		//Core := zapcore.NewCore(encoder,zapcore.NewMultiWriteSyncer(writeSyncer, zapcore.AddSync(os.Stdout)), zapcore.DebugLevel)
 		core := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(writeSyncer), zapcore.DebugLevel)
 		FileLogger = zap.New(core)
+
+		if js {
+			jswriteSyncer, jserr := os.OpenFile(logfile+"_js.log", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
+			if jserr != nil {
+				panic("create log_file failed")
+			}
+
+			//encoderConfig := zap.NewProductionEncoderConfig()
+			jsencoderConfig := zapcore.EncoderConfig{
+				MessageKey: "msg",
+			}
+
+			var jsencoder zapcore.Encoder
+
+			if Format == "json" {
+				jsencoder = zapcore.NewJSONEncoder(jsencoderConfig)
+			} else {
+				jsencoder = zapcore.NewConsoleEncoder(jsencoderConfig)
+			}
+			jscore := zapcore.NewCore(jsencoder, zapcore.NewMultiWriteSyncer(jswriteSyncer), zapcore.DebugLevel)
+			JsLogger = zap.New(jscore)
+		}
+
 	}
 
 }
@@ -77,7 +100,7 @@ func ResHandle(ctx context.Context, reschan chan *utils.PathDict) {
 func OutputLinkFinder() {
 	for fromurl, linklist := range SpiderUrlMap {
 		parurl, _ := url.Parse(fromurl)
-		op, _ := os.OpenFile(parurl.Host, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
+		op, _ := os.OpenFile("./log/"+parurl.Host, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
 		op.WriteString(fromurl + "\n")
 		for _, link := range linklist {
 			op.WriteString("\t" + link + "\n")
@@ -85,7 +108,7 @@ func OutputLinkFinder() {
 	}
 	for fromurl, linklist := range SpiderJsMap {
 		parurl, _ := url.Parse(fromurl)
-		op, _ := os.OpenFile(parurl.Host, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
+		op, _ := os.OpenFile("./log/"+parurl.Host, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
 		op.WriteString(fromurl + "\n")
 		for _, link := range linklist {
 			op.WriteString("\t" + link + "\n")

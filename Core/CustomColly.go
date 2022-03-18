@@ -243,27 +243,3 @@ func FixUrl(mainSite *url.URL, nextLoc string) string {
 	}
 	return mainSite.ResolveReference(nextLocUrl).String()
 }
-
-//func (crawler *Crawler) findAWSS3(resp string) {
-//	aws := GetAWSS3(resp)
-//	for _, e := range aws {
-//		if !crawler.awsSet.Duplicate(e) {
-//			outputFormat := fmt.Sprintf("[aws-s3] - %s", e)
-//			if crawler.JsonOutput {
-//				sout := SpiderOutput{
-//					Input:      crawler.Input,
-//					Source:     "body",
-//					OutputType: "aws",
-//					Output:     e,
-//				}
-//				if data, err := jsoniter.MarshalToString(sout); err == nil {
-//					outputFormat = data
-//				}
-//			}
-//			fmt.Println(outputFormat)
-//			if crawler.Output != nil {
-//				crawler.Output.WriteToFile(outputFormat)
-//			}
-//		}
-//	}
-//}

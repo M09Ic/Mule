@@ -1,6 +1,6 @@
 # Binary name
 BINARY= Mule
-VERSION = 1.4.0beta
+VERSION = 1.4.3beta
 # Builds the project
 build:
 		go build -ldflags "-s -w" -o ${BINARY} ./main.go
@@ -15,6 +15,7 @@ release-upx:
 		# Clean
 		#go clean
 		rm -rf *.gz
+		rm -rf ./bin/Mule*
 		# Build for mac
 		go build -ldflags "-s -w" -o ./bin/Mule-mac64-${VERSION} ./main.go
 		upx -2 ./bin/Mule-mac64-${VERSION}

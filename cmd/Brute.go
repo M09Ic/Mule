@@ -352,7 +352,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		MaxIdleConnsPerHost: opts.Thread,
 	}
 
-	Core.InitLogger(LogFile, opts.Nolog, nobanner)
+	Core.InitBruteLogger(LogFile, opts.Nolog, nobanner, opts.JsFinder)
 
 	return &opts, nil
 
