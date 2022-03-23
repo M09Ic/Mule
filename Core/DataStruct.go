@@ -23,6 +23,7 @@ type Options struct {
 	Nolog       bool
 	NoUpdate    bool
 	Follow      bool
+	Nobanner    bool
 	Transport   *http.Transport
 	utils.AutoDict
 }

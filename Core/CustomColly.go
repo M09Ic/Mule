@@ -77,11 +77,19 @@ func (crawler *Crawler) Start(target string) {
 			if len(via) >= 10 {
 				return errors.New("stopped after 10 redirects")
 			}
-			nextLocation := req.Response.Header.Get("Location")
+			nextLocation, err := url.Parse(req.Response.Header.Get("Location"))
 			// Allow in redirect from http to https or in same hostname
 			// We just check contain hostname or not because we set URLFilter in main collector so if
 			// the URL is https://otherdomain.com/?url=maindomain.com, it will reject it
-			if strings.Contains(nextLocation, HdTarget.Hostname()) {
+
+			if err != nil {
+				return nil
+			}
+			if nextLocation.Host == "" {
+				return nil
+			}
+
+			if strings.Contains(nextLocation.Host, HdTarget.Hostname()) {
 
 				return nil
 			}

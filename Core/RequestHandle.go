@@ -20,7 +20,7 @@ func AccessWork(ctx context.Context, workPara *PoolPara) {
 				return
 			}
 
-			if !utils.Nolog {
+			if !utils.Nobanner {
 				workPara.countchan <- struct{}{}
 			}
 
@@ -48,6 +48,7 @@ func AccessWork(ctx context.Context, workPara *PoolPara) {
 
 			if err != nil {
 				// TODO 错误处理
+				workPara.callback <- struct{}{}
 				continue
 			}
 

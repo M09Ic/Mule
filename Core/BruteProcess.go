@@ -3,10 +3,9 @@ package Core
 import (
 	"Mule/utils"
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/gosuri/uiprogress"
 	"github.com/panjf2000/ants"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -27,6 +26,7 @@ type PoolPara struct {
 	repChan   chan *Resp
 	custom    *CustomClient
 	target    string
+	callback  chan struct{}
 	wgs       *sync.WaitGroup
 	wdmap     map[string]*WildCard
 }
@@ -79,9 +79,6 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 	utils.Configloader()
 	var targetwd []tarwp
 
-	Pgbar = uiprogress.New()
-	Pgbar.Start()
-
 	for _, curtarget := range HandleredTarget {
 		var wildcardmap map[string]*WildCard
 
@@ -103,7 +100,7 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 
 	for _, curtargetwd := range targetwd {
 
-		fmt.Println("Start brute " + curtargetwd.target)
+		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintln("Start brute "+curtargetwd.target))
 
 		wp := WorkPara{
 			alljson: &alljson,
@@ -139,6 +136,8 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	repChan := make(chan *Resp, 1000)
 	resChan := make(chan *utils.PathDict, 1000)
 	checkChan := make(chan struct{}, 1000)
+	callback := make(chan struct{}, 1000)
+
 	CurContext, CurCancel := context.WithCancel(ctx)
 	SpiderWaitChan <- wp.target
 
@@ -146,10 +145,10 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	WordChan := MakeWordChan(*wp.alljson)
 	//检测成功后初始化各类插件
 	// waf检测
-	go timeChecking(CurContext, wp.client, wp.target, wp.wdmap["default"], checkChan, CurCancel)
+	go timeChecking(CurContext, wp.client, wp.target, wp.wdmap["default"], callback, checkChan, CurCancel)
 	//进度条
 	countchan := make(chan struct{}, 1000)
-	if !wp.Opts.Nolog {
+	if !wp.Opts.Nobanner {
 		go BruteProcessBar(CurContext, PathLength, wp.target, countchan)
 	}
 
@@ -172,6 +171,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 		countchan: countchan,
 		custom:    wp.client,
 		target:    wp.target,
+		callback:  callback,
 		wgs:       &ReqWgs,
 		StopCh:    StopCh_R,
 		wdmap:     wp.wdmap,
@@ -229,10 +229,10 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	}
 
 	RepScanPool.Release()
-	if wp.Opts.Nolog {
-		JsonRes, _ := json.Marshal(ResSlice)
-		fmt.Println(string(JsonRes))
-	}
+	//if wp.Opts.Nolog {
+	//	JsonRes, _ := json.Marshal(ResSlice)
+	//	fmt.Println(string(JsonRes))
+	//}
 	if !wp.Opts.NoUpdate {
 		UpdateDict(wp.Opts.Dictionary, wp.Opts.DirRoot)
 	}
@@ -251,7 +251,8 @@ func MakeWordChan(alljson []utils.PathDict) chan utils.PathDict {
 	WordChan := make(chan utils.PathDict)
 
 	if len(alljson) == 0 {
-		panic("please check your dict")
+		fmt.Println("please check your dict")
+		os.Exit(0)
 	}
 
 	PathLength = len(alljson)
@@ -273,7 +274,8 @@ func GetRange(rang string, allJson []string) []string {
 	} else if !strings.Contains(rang, "-") {
 		End, err := strconv.Atoi(rang)
 		if err != nil {
-			panic("please check End")
+			fmt.Println("please check End")
+			os.Exit(0)
 		}
 		if End >= len(allJson) {
 			fmt.Println("out of range,it's set to the end")
@@ -284,14 +286,16 @@ func GetRange(rang string, allJson []string) []string {
 		RangList := strings.Split(rang, "-")
 		Ben, err := strconv.Atoi(RangList[0])
 		if err != nil {
-			panic("please check End")
+			fmt.Println("please check End")
+			os.Exit(0)
 		}
 		if RangList[1] == "" {
 			return allJson[Ben:]
 		}
 		End, err := strconv.Atoi(RangList[1])
 		if err != nil {
-			panic("please check End")
+			fmt.Println("please check End")
+			os.Exit(0)
 		}
 		if End >= len(allJson) {
 			fmt.Println("out of range,it's set to the end")

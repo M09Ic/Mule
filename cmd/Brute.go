@@ -325,7 +325,8 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for follow: %w", err)
 	}
 
-	nobanner, err := cmd.Flags().GetBool("nobanner")
+	opts.Nobanner, err = cmd.Flags().GetBool("nobanner")
+	utils.Nobanner = opts.Nobanner
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
@@ -352,7 +353,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		MaxIdleConnsPerHost: opts.Thread,
 	}
 
-	Core.InitBruteLogger(LogFile, opts.Nolog, nobanner, opts.JsFinder)
+	Core.InitBruteLogger(LogFile, opts.Nolog, opts.Nobanner, opts.JsFinder)
 
 	return &opts, nil
 

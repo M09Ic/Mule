@@ -1,6 +1,7 @@
 package Core
 
 import (
+	"Mule/utils"
 	"context"
 	"errors"
 	"fmt"
@@ -81,24 +82,32 @@ func (custom *CustomClient) RunRequest(ctx context.Context, Url string, Para Add
 		//FileLogger.Error("RunRequestErr", zap.String("Error", err.Error()))
 		return nil, err
 	}
+	defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
-
-	if err != nil {
-		return nil, err
-	}
-	response.Body.Close()
 	result.StatusCode = response.StatusCode
 	result.Header = response.Header
-	result.Length = int64(len(body))
-	if result.Length > 8192 {
-		result.Body = body[:8192]
+
+	buffer, err := utils.CustomReadAll(response.Body)
+	if err == nil {
+		if response.Body != nil {
+			if _, cperr := io.Copy(io.Discard, response.Body); cperr != nil {
+				return nil, cperr
+			}
+		}
+
+		result.Length = int64(len(buffer))
+
+		result.Body = buffer
+
+		return &result, nil
 	} else {
-		result.Body = body
+		if err != nil {
+
+			return nil, err
+		}
 	}
 
-	return &result, nil
-
+	return nil, err
 }
 
 func (custom *CustomClient) DoRequest(ctx context.Context, Url string, Para Additional) (response *http.Response, err error) {

@@ -4,6 +4,7 @@ import (
 	"Mule/utils"
 	"context"
 	"fmt"
+	"github.com/gosuri/uiprogress"
 	"github.com/panjf2000/ants"
 	"github.com/projectdiscovery/cdncheck"
 	"net"
@@ -20,6 +21,9 @@ type PreParePara struct {
 }
 
 func FilterTarget(ctx context.Context, client, preclient *CustomClient, targets []string, root string) {
+
+	Pgbar = uiprogress.New()
+	Pgbar.Start()
 
 	var Prep sync.WaitGroup
 	PreParePool, _ := ants.NewPoolWithFunc(100, func(Para interface{}) {
@@ -75,7 +79,7 @@ func ScanPrepare(ctx context.Context, para *PreParePara) {
 	resp, target, aliverr := CheckProto(ctx, para.target, para.preclient)
 
 	if !aliverr {
-		fmt.Println("cannot connect to " + para.target)
+		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintln("cannot connect to "+para.target))
 		return
 	}
 	HandleredTarget = append(HandleredTarget, target)
@@ -86,7 +90,7 @@ func ScanPrepare(ctx context.Context, para *PreParePara) {
 	WdMap, err := GenWildCardMap(ctx, para.client, RandomPath, target, para.root)
 
 	if err != nil {
-		fmt.Println("cannot connect to " + para.target)
+		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintln("cannot connect to "+para.target))
 		return
 	}
 	if resp != nil {
