@@ -26,7 +26,7 @@ func FilterTarget(ctx context.Context, client, preclient *CustomClient, targets 
 	Pgbar.Start()
 
 	var Prep sync.WaitGroup
-	PreParePool, _ := ants.NewPoolWithFunc(100, func(Para interface{}) {
+	PreParePool, _ := ants.NewPoolWithFunc(50, func(Para interface{}) {
 		CuPara := Para.(PreParePara)
 		ScanPrepare(ctx, &CuPara)
 		defer Prep.Done()
@@ -41,10 +41,6 @@ func FilterTarget(ctx context.Context, client, preclient *CustomClient, targets 
 			root:      root,
 		}
 		_ = PreParePool.Invoke(pp)
-		//if err != nil {
-		//	fmt.Println(err)
-		//	continue
-		//}
 
 	}
 
@@ -54,10 +50,6 @@ func FilterTarget(ctx context.Context, client, preclient *CustomClient, targets 
 }
 
 func ScanPrepare(ctx context.Context, para *PreParePara) {
-
-	//defer utils.TimeCost()()
-	//fmt.Println("start scan prepare")
-	//var WdMap map[string]*WildCard
 
 	fmt.Println("Start to check " + para.target)
 
@@ -102,7 +94,11 @@ func ScanPrepare(ctx context.Context, para *PreParePara) {
 		}
 	}
 
-	AllWildMap.Store(target, WdMap)
+	var tw tarwp
+
+	tw.target = para.target
+	tw.wildmap = WdMap
+	Targetwd <- tw
 
 	return
 

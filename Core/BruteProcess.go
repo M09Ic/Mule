@@ -17,6 +17,7 @@ var SpiderWaitChan = make(chan string, 100)
 var HandleredTarget []string
 var Block int
 var AllWildMap sync.Map
+var Targetwd = make(chan tarwp, 100)
 
 type PoolPara struct {
 	wordchan  chan utils.PathDict
@@ -66,7 +67,7 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 
 	Opts.Target = GetRange(Opts.TargetRange, Opts.Target)
 
-	FilterTarget(taskroot, client, preclient, Opts.Target, Opts.DirRoot)
+	go FilterTarget(taskroot, client, preclient, Opts.Target, Opts.DirRoot)
 
 	alljson := utils.ReadDict(Opts.Dictionary, Opts.DirRoot, Opts.Range, Opts.NoUpdate, Opts.AutoDict)
 
@@ -77,28 +78,8 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 		StartProcess(taskroot, &CuPara)
 	})
 	utils.Configloader()
-	var targetwd []tarwp
 
-	for _, curtarget := range HandleredTarget {
-		var wildcardmap map[string]*WildCard
-
-		var tw tarwp
-
-		if wd, ok := AllWildMap.Load(curtarget); !ok {
-			continue
-		} else {
-			wildcardmap = wd.(map[string]*WildCard)
-			tw.target = curtarget
-			tw.wildmap = wildcardmap
-			targetwd = append(targetwd, tw)
-		}
-	}
-
-	if len(targetwd) > 1 {
-		Opts.Thread = Opts.Thread / 2
-	}
-
-	for _, curtargetwd := range targetwd {
+	for curtargetwd := range Targetwd {
 
 		fmt.Fprintln(Pgbar.Bypass(), fmt.Sprintln("Start brute "+curtargetwd.target))
 
@@ -112,10 +93,6 @@ func ScanTask(ctx context.Context, Opts Options, client, preclient *CustomClient
 
 		wg.Add(1)
 		_ = TaskPool.Invoke(wp)
-
-		//t1 := time.Now()
-
-		// 做访问前准备，判断是否可以连通，以及不存在路径的返回情况
 
 	}
 	wg.Wait()
