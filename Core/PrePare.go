@@ -46,7 +46,7 @@ func FilterTarget(ctx context.Context, client, preclient *CustomClient, targets 
 
 	Prep.Wait()
 	PreParePool.Release()
-
+	close(Targetwd)
 }
 
 func ScanPrepare(ctx context.Context, para *PreParePara) {

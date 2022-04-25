@@ -67,11 +67,11 @@ func init() {
 	BruteCmd.Flags().BoolP("nolog", "", false, "don't produce log")
 	BruteCmd.Flags().BoolP("noupdate", "", false, "don't update dict to json")
 	BruteCmd.Flags().BoolP("noconsole", "", false, "dont output result in console")
-	//BruteCmd.Flags().StringP("prefix","","","prefix of items")
 	BruteCmd.Flags().BoolP("nobanner", "", false, "dont output banner in console")
 	BruteCmd.Flags().BoolP("follow", "", false, "follow the 30x or not")
 	BruteCmd.Flags().StringP("targetrange", "", "0", "target range")
-
+	BruteCmd.Flags().StringP("prefix", "", "", "prefix")
+	BruteCmd.Flags().StringP("suffix", "", "", "suffix")
 	BruteCmd.Flags().StringP("AutoList", "a", "", "autolist like random Alphabet")
 	BruteCmd.Flags().IntP("Cycle", "c", 1, "Autolist Circulation")
 
@@ -216,6 +216,18 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid value noconsole: %w", err)
+	}
+
+	utils.Prefix, err = cmd.Flags().GetString("prefix")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value prefix: %w", err)
+	}
+
+	utils.Suffix, err = cmd.Flags().GetString("suffix")
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid value suffix: %w", err)
 	}
 
 	Core.Format, err = cmd.Flags().GetString("format")

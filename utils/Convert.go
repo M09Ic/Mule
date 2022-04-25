@@ -19,6 +19,7 @@ import (
 )
 
 var Nolog, Noconsole, Nobanner bool
+var Prefix, Suffix string
 
 func UnFlate(input []byte) []byte {
 	rdata := bytes.NewReader(input)

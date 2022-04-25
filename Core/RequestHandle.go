@@ -34,9 +34,22 @@ func AccessWork(ctx context.Context, workPara *PoolPara) {
 			}
 
 			if workPara.custom.Mod == "default" {
-				if !strings.HasPrefix(PreHandleWord, "/") {
-					PreHandleWord = "/" + PreHandleWord
+				if strings.HasPrefix(PreHandleWord, "/") {
+					if PreHandleWord == "/" {
+						PreHandleWord = ""
+					} else {
+						PreHandleWord = PreHandleWord[1:]
+					}
 				}
+				if utils.Prefix != "" {
+					PreHandleWord = utils.Prefix + PreHandleWord
+				}
+
+				if utils.Suffix != "" {
+					PreHandleWord = PreHandleWord + utils.Suffix
+
+				}
+				PreHandleWord = "/" + PreHandleWord
 			}
 
 			add := Additional{
