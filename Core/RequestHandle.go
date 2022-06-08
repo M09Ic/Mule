@@ -20,7 +20,7 @@ func AccessWork(ctx context.Context, workPara *PoolPara) {
 				return
 			}
 
-			if !utils.Nobanner {
+			if !utils.Quiet {
 				workPara.countchan <- struct{}{}
 			}
 

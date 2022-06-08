@@ -125,7 +125,7 @@ func StartProcess(ctx context.Context, wp *WorkPara) {
 	go timeChecking(CurContext, wp.client, wp.target, wp.wdmap["default"], callback, checkChan, CurCancel)
 	//进度条
 	countchan := make(chan struct{}, 1000)
-	if !wp.Opts.Nobanner {
+	if !utils.Quiet {
 		go BruteProcessBar(CurContext, PathLength, wp.target, countchan)
 	}
 

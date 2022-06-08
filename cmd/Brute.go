@@ -66,8 +66,9 @@ func init() {
 	BruteCmd.Flags().StringP("format", "", "json", "the format of output")
 	BruteCmd.Flags().BoolP("nolog", "", false, "don't produce log")
 	BruteCmd.Flags().BoolP("noupdate", "", false, "don't update dict to json")
-	BruteCmd.Flags().BoolP("noconsole", "", false, "dont output result in console")
-	BruteCmd.Flags().BoolP("nobanner", "", false, "dont output banner in console")
+	//BruteCmd.Flags().BoolP("noconsole", "", false, "dont output result in console")
+	//BruteCmd.Flags().BoolP("nobanner", "", false, "dont output banner in console")
+	BruteCmd.Flags().BoolP("quiet", "q", false, "dont output banner in console")
 	BruteCmd.Flags().BoolP("follow", "", false, "follow the 30x or not")
 	BruteCmd.Flags().StringP("targetrange", "", "0", "target range")
 	BruteCmd.Flags().StringP("prefix", "", "", "prefix")
@@ -212,10 +213,9 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for url: %w", err)
 	}
 
-	utils.Noconsole, err = cmd.Flags().GetBool("noconsole")
-
+	utils.Quiet, err = cmd.Flags().GetBool("quiet")
 	if err != nil {
-		return nil, fmt.Errorf("invalid value noconsole: %w", err)
+		return nil, fmt.Errorf("invalid value quiet: %w", err)
 	}
 
 	utils.Prefix, err = cmd.Flags().GetString("prefix")
@@ -306,9 +306,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		LogFile = "./" + fileprex + "_" + defaultstring + ".log"
 	}
 
-	opts.Nolog, err = cmd.Flags().GetBool("nolog")
-
-	utils.Nolog = opts.Nolog
+	utils.Nolog, err = cmd.Flags().GetBool("nolog")
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
 	}
@@ -337,9 +335,6 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		return nil, fmt.Errorf("invalid value for follow: %w", err)
 	}
 
-	opts.Nobanner, err = cmd.Flags().GetBool("nobanner")
-	utils.Nobanner = opts.Nobanner
-
 	if err != nil {
 		return nil, fmt.Errorf("invalid value for LogFile: %w", err)
 	}
@@ -365,7 +360,7 @@ func ParseInput(cmd *cobra.Command) (*Core.Options, error) {
 		MaxIdleConnsPerHost: opts.Thread,
 	}
 
-	Core.InitBruteLogger(LogFile, opts.Nolog, opts.Nobanner, opts.JsFinder)
+	Core.InitBruteLogger(LogFile, opts.JsFinder)
 
 	return &opts, nil
 

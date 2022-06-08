@@ -87,7 +87,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 							FileLogger.Info(fmt.Sprintf("Path: %s\t%v\t%v\t[Framework:%s]\n", finpath, resp.resp.StatusCode, resp.resp.Length, fingeriden.Frameworks.ToString()))
 						}
 					}
-					if !utils.Noconsole {
+					if !utils.Quiet {
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()
@@ -97,7 +97,7 @@ func AccessResponseWork(ctx context.Context, WorkPara *ResponsePara) {
 					}
 
 				case "host":
-					if !utils.Noconsole {
+					if !utils.Quiet {
 						blue := color.New(color.FgBlue).SprintFunc()
 						cy := color.New(color.FgCyan).SprintFunc()
 						red := color.New(color.FgHiMagenta).SprintFunc()

@@ -23,17 +23,16 @@ var Format string
 
 //初始化log
 
-func InitBruteLogger(logfile string, nolog, nobanner, js bool) {
+func InitBruteLogger(logfile string, js bool) {
 	//defer utils.TimeCost()()
 	//
 	//fmt.Println("Start init logger")
+	if !utils.Quiet {
+		fmt.Println(Mule)
 
-	if !nolog {
-		if !nobanner {
-			fmt.Println(Mule)
-
-			fmt.Println(Version)
-		}
+		fmt.Println(Version)
+	}
+	if !utils.Nolog {
 
 		writeSyncer, err := os.OpenFile(logfile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0744)
 		if err != nil {

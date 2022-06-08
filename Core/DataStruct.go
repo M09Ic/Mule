@@ -20,11 +20,11 @@ type Options struct {
 	Mod         string
 	TargetRange string
 	JsFinder    bool
-	Nolog       bool
-	NoUpdate    bool
-	Follow      bool
-	Nobanner    bool
-	Transport   *http.Transport
+	//Nolog       bool
+	NoUpdate bool
+	Follow   bool
+	//Nobanner    bool
+	Transport *http.Transport
 	utils.AutoDict
 }
 

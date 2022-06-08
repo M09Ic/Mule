@@ -18,12 +18,12 @@ import (
 	"strings"
 )
 
-var Nolog, Noconsole, Nobanner bool
+var Nolog, Quiet bool
 var Prefix, Suffix string
 
 func UnFlate(input []byte) []byte {
 	rdata := bytes.NewReader(input)
-	r := flate.NewReaderDict(rdata, []byte(flatedict))
+	r := flate.NewReader(rdata)
 	s, _ := ioutil.ReadAll(r)
 	return s
 }
@@ -33,11 +33,9 @@ func Decode(input string) []byte {
 	return UnFlate(b)
 }
 
-var flatedict = `,":`
-
 func Flate(input []byte) []byte {
 	var bf = bytes.NewBuffer([]byte{})
-	var flater, _ = flate.NewWriterDict(bf, flate.BestCompression, []byte(flatedict))
+	var flater, _ = flate.NewWriter(bf, flate.BestCompression)
 	defer flater.Close()
 	if _, err := flater.Write(input); err != nil {
 		println(err.Error())
