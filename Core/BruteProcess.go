@@ -4,7 +4,7 @@ import (
 	"Mule/utils"
 	"context"
 	"fmt"
-	"github.com/panjf2000/ants"
+	"github.com/panjf2000/ants/v2"
 	"os"
 	"strconv"
 	"strings"

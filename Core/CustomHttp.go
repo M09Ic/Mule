@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -130,7 +129,7 @@ func (custom *CustomClient) DoRequest(ctx context.Context, Url string, Para Addi
 
 	request = request.WithContext(ctx)
 
-	request.Header.Set("User-Agent", utils.UAList[rand.Intn(len(utils.UAList))])
+	//request.Header.Set("User-Agent", utils.UAList[rand.Intn(len(utils.UAList))])
 	for _, header := range custom.Headers {
 		request.Header.Set(header.Name, header.Value)
 	}

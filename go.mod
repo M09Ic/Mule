@@ -9,7 +9,7 @@ require (
 	github.com/gocolly/colly/v2 v2.1.0
 	github.com/gosuri/uiprogress v0.0.1
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/panjf2000/ants v1.3.0
+	github.com/panjf2000/ants/v2 v2.4.2
 	github.com/projectdiscovery/cdncheck v0.0.2
 	github.com/schollz/progressbar/v3 v3.7.6
 	github.com/spf13/cobra v1.1.3
